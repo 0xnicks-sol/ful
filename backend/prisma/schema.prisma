@@ -1,0 +1,117 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Battle rounds
+model Battle {
+  id               String        @id @default(uuid())
+  roundId          Int           @unique
+  status           BattleStatus  @default(IDLE)
+  winnerId         String?
+  winnerAddress    String?
+  participantCount Int           @default(0)
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  participants     Participant[]
+
+  @@index([roundId])
+  @@index([status])
+  @@map("battles")
+}
+
+enum BattleStatus {
+  IDLE
+  TIMER_ACTIVE
+  TIMER_ENDED
+  SELECTING_WINNER
+  FIGHTING
+  WINNER_REVEAL
+  COMPLETE
+}
+
+// Battle participants (auto-joined via token purchase)
+model Participant {
+  id            String   @id @default(uuid())
+  battleId      String
+  walletAddress String
+  txSignature   String   @unique // Solana transaction signature
+  tokenAmount   Float    @default(0)
+  joinedAt      DateTime @default(now())
+
+  battle Battle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+
+  @@unique([battleId, walletAddress])
+  @@index([battleId])
+  @@index([walletAddress])
+  @@index([txSignature])
+  @@map("participants")
+}
+
+// Characters (NFTs assigned to token holders)
+model Character {
+  id            String    @id @default(uuid())
+  walletAddress String
+  characterType String    @default("Common") // Common, Rare, Legendary
+  characterName String
+  mintedAt      DateTime  @default(now())
+  destroyedAt   DateTime? // Set when user sells tokens
+  isActive      Boolean   @default(true)
+
+  @@index([walletAddress])
+  @@index([isActive])
+  @@map("characters")
+}
+
+// Leaderboard tracking
+model Leaderboard {
+  id            String    @id @default(uuid())
+  walletAddress String    @unique
+  wins          Int       @default(0)
+  lastWinAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([wins, lastWinAt])
+  @@map("leaderboard")
+}
+
+// Reward distribution logs
+model Reward {
+  id              String   @id @default(uuid())
+  txSignature     String   @unique // Solana transaction signature
+  winners         String[] // Array of 3 wallet addresses
+  amountPerWinner String   // Amount in SOL (stored as string for precision)
+  distributedAt   DateTime @default(now())
+
+  @@index([distributedAt])
+  @@map("rewards")
+}
+
+// Token transactions log (for audit trail)
+model TokenTransaction {
+  id            String              @id @default(uuid())
+  walletAddress String
+  txSignature   String              @unique
+  type          TokenTransactionType
+  tokenAmount   Float
+  timestamp     DateTime            @default(now())
+  processed     Boolean             @default(false)
+
+  @@index([walletAddress])
+  @@index([type])
+  @@index([processed])
+  @@map("token_transactions")
+}
+
+enum TokenTransactionType {
+  PURCHASE
+  SELL
+}
