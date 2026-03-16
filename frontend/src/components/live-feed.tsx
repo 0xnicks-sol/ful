@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { Copy, ExternalLink, Sword, Shield, Trophy, UserPlus, UserMinus } from "lucide-react"
 
 export type FeedEventType = "join" | "eliminate" | "sell" | "win" | "round_start" | "round_end"
@@ -199,11 +200,14 @@ export function TokenInfoBar({
       }}
     >
       <div className="flex items-center gap-3">
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: "rgba(201,162,39,0.15)", border: "1px solid rgba(201,162,39,0.4)" }}
-        >
-          <span style={{ fontSize: 14 }}>⚔</span>
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ border: "1px solid rgba(201,162,39,0.4)" }}>
+          <Image
+            src="/logoooooo-modified.png"
+            alt="ClawBattle"
+            width={32}
+            height={32}
+            className="w-full h-full object-cover"
+          />
         </div>
         <div>
           <div className="flex items-center gap-1.5">
