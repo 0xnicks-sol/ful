@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Arena color system (CSS variables) ───────────────────────────────────── */
+:root {
+  --background: #05050a;
+  --foreground: #f0e6c8;
+  --card: rgba(12, 10, 5, 0.75);
+  --card-foreground: #f0e6c8;
+  --popover: #0c0a05;
+  --popover-foreground: #f0e6c8;
+  --primary: #c9a227;
+  --primary-foreground: #05050a;
+  --secondary: #1a1208;
+  --secondary-foreground: #f0e6c8;
+  --muted: #1a1208;
+  --muted-foreground: #8a7a55;
+  --accent: #8b0000;
+  --accent-foreground: #f0e6c8;
+  --destructive: #ff2e2e;
+  --destructive-foreground: #f0e6c8;
+  --border: rgba(201, 162, 39, 0.2);
+  --input: rgba(201, 162, 39, 0.15);
+  --ring: #c9a227;
+  --radius: 0.5rem;
+
+  /* Arena-specific tokens */
+  --gold: #c9a227;
+  --gold-bright: #f0c040;
+  --gold-dim: #7a621a;
+  --crimson: #8b0000;
+  --crimson-bright: #cc1111;
+  --blood: #ff2e2e;
+  --sand: #f0e6c8;
+  --sand-dim: #8a7a55;
+  --glass-bg: rgba(12, 10, 5, 0.6);
+  --glass-border: rgba(201, 162, 39, 0.25);
+  --glass-hover: rgba(201, 162, 39, 0.08);
+  --smoke: rgba(255, 200, 100, 0.04);
+}
+
+/* ── Base layer ────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: rgba(201, 162, 39, 0.2);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #05050a;
+    color: #f0e6c8;
+    overflow-x: hidden;
+  }
+  ::-webkit-scrollbar       { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0c0a05; }
+  ::-webkit-scrollbar-thumb { background: rgba(201, 162, 39, 0.4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(201, 162, 39, 0.7); }
+}
+
+/* ── Component utilities ───────────────────────────────────────────────────── */
+@layer components {
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .glass-card:hover {
+    background: rgba(12, 10, 5, 0.75);
+    border-color: rgba(201, 162, 39, 0.45);
+  }
+
+  .gold-text  { color: var(--gold); }
+  .text-gold  { color: #c9a227; }
+  .text-sand  { color: #f0e6c8; }
+  .text-sand-dim { color: #8a7a55; }
+
+  .hover\:text-gold:hover { color: #c9a227; }
+
+  .gold-glow {
+    text-shadow: 0 0 20px rgba(201, 162, 39, 0.6), 0 0 40px rgba(201, 162, 39, 0.3);
+  }
+  .crimson-glow {
+    text-shadow: 0 0 20px rgba(204, 17, 17, 0.8), 0 0 40px rgba(204, 17, 17, 0.4);
+  }
+  .arena-border {
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 12px rgba(201, 162, 39, 0.3), inset 0 0 12px rgba(201, 162, 39, 0.05);
+  }
+
+  /* Pre-built animation helpers */
+  .animate-float               { animation: float 3s ease-in-out infinite; }
+  .animate-pulse-gold          { animation: pulse-gold 2s ease-in-out infinite; }
+  .animate-pulse-crimson       { animation: pulse-crimson 1.5s ease-in-out infinite; }
+  .animate-ring-rotate         { animation: ring-rotate 20s linear infinite; }
+  .animate-ring-rotate-reverse { animation: ring-rotate-reverse 15s linear infinite; }
+  .animate-fighter-idle        { animation: fighter-idle 2s ease-in-out infinite; }
+  .animate-fighter-attack      { animation: fighter-attack 0.5s ease-in-out; }
+  .animate-fighter-die         { animation: fighter-die 0.8s ease-in-out forwards; }
+  .animate-enter-arena         { animation: enter-arena 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  .animate-ticker              { animation: ticker-scroll 30s linear infinite; }
+  .animate-crowd               { animation: crowd-cheer 3s ease-in-out infinite; }
+  .animate-countdown           { animation: countdown-pulse 1s ease-in-out infinite; }
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────────────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 10px rgba(201, 162, 39, 0.3); }
+  50%       { box-shadow: 0 0 30px rgba(201, 162, 39, 0.7), 0 0 60px rgba(201, 162, 39, 0.3); }
+}
+
+@keyframes pulse-crimson {
+  0%, 100% { box-shadow: 0 0 10px rgba(139, 0, 0, 0.4); }
+  50%       { box-shadow: 0 0 30px rgba(204, 17, 17, 0.8), 0 0 60px rgba(204, 17, 17, 0.3); }
+}
+
+@keyframes ember-rise {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-120px) translateX(var(--drift, 20px)) scale(0.2); opacity: 0; }
+}
+
+@keyframes ring-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes ring-rotate-reverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+@keyframes fighter-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%       { transform: translateY(-3px) rotate(-1deg); }
+  75%       { transform: translateY(-2px) rotate(1deg); }
+}
+
+@keyframes fighter-attack {
+  0%   { transform: translateX(0) scale(1); }
+  30%  { transform: translateX(12px) scale(1.05) rotate(5deg); }
+  60%  { transform: translateX(-4px) scale(0.98) rotate(-2deg); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes fighter-die {
+  0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+  40%  { transform: scale(1.1) rotate(-15deg); opacity: 0.8; }
+  100% { transform: scale(0.3) rotate(-90deg) translateY(20px); opacity: 0; }
+}
+
+@keyframes enter-arena {
+  0%   { transform: scale(0) translateY(40px); opacity: 0; }
+  70%  { transform: scale(1.1) translateY(-5px); opacity: 0.9; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Alias for live-feed.tsx which uses animation name "ticker" */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes crowd-cheer {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes elimination-flash {
+  0%   { background: rgba(255, 46, 46, 0); }
+  25%  { background: rgba(255, 46, 46, 0.3); }
+  50%  { background: rgba(255, 46, 46, 0); }
+  75%  { background: rgba(255, 46, 46, 0.15); }
+  100% { background: rgba(255, 46, 46, 0); }
+}
+
+@keyframes lottery-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(720deg); }
+}
+
+@keyframes countdown-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+
+@keyframes border-march {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -100; }
+}
+
+/* Sword arm swing — origin at right shoulder */
+@keyframes sword-swing {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(-65deg); }
+  55%  { transform: rotate(42deg); }
+  78%  { transform: rotate(22deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Shield arm raise on block */
+@keyframes shield-block {
+  0%   { transform: rotate(0deg) translateX(0); }
+  35%  { transform: rotate(22deg) translateX(10px); }
+  65%  { transform: rotate(12deg) translateX(5px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+
+/* Whole body lean forward on attack */
+@keyframes body-lunge {
+  0%   { transform: rotate(0deg) scaleX(1); }
+  35%  { transform: rotate(8deg) scaleX(1.05); }
+  65%  { transform: rotate(-2deg) scaleX(0.97); }
+  100% { transform: rotate(0deg) scaleX(1); }
+}
+
+/* Body recoil on hit */
+@keyframes body-flinch {
+  0%   { transform: rotate(0deg) translateX(0); }
+  30%  { transform: rotate(-12deg) translateX(-10px); }
+  62%  { transform: rotate(-6deg) translateX(-5px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+
+/* Clash burst */
+@keyframes clash-burst {
+  0%   { transform: translate(-50%, -50%) scale(0.15); opacity: 1; }
+  55%  { transform: translate(-50%, -50%) scale(1.4); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
