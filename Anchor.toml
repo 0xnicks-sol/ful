@@ -1,0 +1,43 @@
+[features]
+seeds = true
+skip-lint = false
+
+[programs.localnet]
+battle_royale = "BattLE1111111111111111111111111111111111111"
+
+[programs.devnet]
+battle_royale = "BattLE1111111111111111111111111111111111111"
+
+[programs.mainnet]
+battle_royale = "REPLACE_WITH_DEPLOYED_PROGRAM_ID"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+# Run Anchor tests
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+# ─── Build & Deploy ───────────────────────────────────────────────────────────
+#
+#  Build:
+#    anchor build
+#
+#  Deploy to devnet:
+#    anchor deploy --provider.cluster devnet
+#
+#  Deploy to mainnet:
+#    anchor deploy --provider.cluster mainnet
+#
+#  After deployment, copy the program ID printed in the terminal and:
+#    1. Update declare_id!("...") in src/lib.rs
+#    2. Update [programs.mainnet] above
+#    3. Update PROGRAM_ID in backend/.env
+#    4. Re-run anchor build to regenerate the IDL
+
+[workspace]
+members = ["programs/battle-royale"]

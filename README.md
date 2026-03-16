@@ -733,3 +733,4 @@ curl http://localhost:3001/api/leaderboard
 *Built with Node.js · TypeScript · Next.js 14 · Socket.IO · Prisma · PostgreSQL · Solana · pump.fun · Helius*
 # this_is_the_end
 # can_i_get_hooya
+# ful
