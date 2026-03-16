@@ -32,8 +32,8 @@ function NavTab({
       onClick={onClick}
       className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-mono tracking-widest uppercase transition-all duration-200"
       style={{
-        color:        active ? "#c9a227" : "#8a7a55",
-        borderBottom: active ? "2px solid #c9a227" : "2px solid transparent",
+        color:        active ? "#e63232" : "#888888",
+        borderBottom: active ? "2px solid #e63232" : "2px solid transparent",
         background:   "none",
         cursor:       "pointer",
       }}
@@ -49,14 +49,14 @@ function HpStrengthNotice() {
   return (
     <div
       className="flex items-start gap-3 rounded-xl px-4 py-3"
-      style={{ background: "rgba(201,162,39,0.06)", border: "1px solid rgba(201,162,39,0.28)" }}
+      style={{ background: "rgba(230,50,50,0.06)", border: "1px solid rgba(230,50,50,0.28)" }}
     >
-      <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#c9a227" }} />
+      <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#e63232" }} />
       <div>
-        <p className="text-xs font-mono font-bold tracking-wide uppercase mb-0.5" style={{ color: "#c9a227" }}>
+        <p className="text-xs font-mono font-bold tracking-wide uppercase mb-0.5" style={{ color: "#e63232" }}>
           Hold More · Fight Stronger
         </p>
-        <p className="text-xs font-mono leading-relaxed" style={{ color: "#8a7a55" }}>
+        <p className="text-xs font-mono leading-relaxed" style={{ color: "#888888" }}>
           The more tokens you purchase and hold, the greater your fighter{"'"}s HP and battle strength. Larger holders deal more damage and survive longer.
         </p>
       </div>
@@ -67,13 +67,13 @@ function HpStrengthNotice() {
 function AmbientBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-      <div className="absolute" style={{ width: 500, height: 500, top: -150, left: -150, background: "radial-gradient(circle, rgba(201,162,39,0.05) 0%, transparent 70%)", borderRadius: "50%" }} />
+      <div className="absolute" style={{ width: 500, height: 500, top: -150, left: -150, background: "radial-gradient(circle, rgba(230,50,50,0.05) 0%, transparent 70%)", borderRadius: "50%" }} />
       <div className="absolute" style={{ width: 400, height: 400, top: -80, right: -80, background: "radial-gradient(circle, rgba(139,0,0,0.04) 0%, transparent 70%)", borderRadius: "50%" }} />
-      <div className="absolute" style={{ width: 700, height: 350, bottom: 0, left: "50%", transform: "translateX(-50%)", background: "radial-gradient(ellipse, rgba(201,162,39,0.035) 0%, transparent 70%)" }} />
+      <div className="absolute" style={{ width: 700, height: 350, bottom: 0, left: "50%", transform: "translateX(-50%)", background: "radial-gradient(ellipse, rgba(230,50,50,0.035) 0%, transparent 70%)" }} />
       <div
         className="absolute inset-0 opacity-[0.04]"
         style={{
-          backgroundImage: "linear-gradient(rgba(201,162,39,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(201,162,39,0.4) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(rgba(230,50,50,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(230,50,50,0.4) 1px, transparent 1px)",
           backgroundSize:  "60px 60px",
         }}
       />
@@ -90,13 +90,13 @@ function TournamentCompleteBanner({
   return (
     <div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 p-6"
-      style={{ background: "rgba(5,5,10,0.93)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(10,10,10,0.93)", backdropFilter: "blur(8px)" }}
     >
-      <Crown className="w-16 h-16" style={{ color: "#ffd700", filter: "drop-shadow(0 0 30px rgba(255,215,0,0.7))" }} />
+      <Crown className="w-16 h-16" style={{ color: "#ffffff", filter: "drop-shadow(0 0 30px rgba(255,255,255,0.7))" }} />
       <div className="text-center flex flex-col gap-2">
         <h2
           className="text-4xl font-bold tracking-widest uppercase"
-          style={{ fontFamily: "Georgia, serif", color: "#ffd700", textShadow: "0 0 40px rgba(255,215,0,0.5)" }}
+          style={{ fontFamily: "Georgia, serif", color: "#ffffff", textShadow: "0 0 40px rgba(255,255,255,0.5)" }}
         >
           Tournament Complete!
         </h2>
@@ -107,9 +107,9 @@ function TournamentCompleteBanner({
       <button
         onClick={onGoToLeaderboard}
         className="px-8 py-3 rounded-xl text-sm font-bold font-mono tracking-wider uppercase transition-all duration-200"
-        style={{ background: "rgba(255,215,0,0.15)", border: "1px solid rgba(255,215,0,0.6)", color: "#ffd700", boxShadow: "0 0 24px rgba(255,215,0,0.3)" }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,215,0,0.25)" }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,215,0,0.15)" }}
+        style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.6)", color: "#ffffff", boxShadow: "0 0 24px rgba(255,255,255,0.3)" }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.25)" }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)" }}
       >
         See Grand Winners →
       </button>
@@ -163,7 +163,7 @@ export default function Home() {
   }, [autoStartLottery])
 
   return (
-    <div className="relative min-h-screen flex flex-col" style={{ background: "#05050a" }}>
+    <div className="relative min-h-screen flex flex-col" style={{ background: "#0a0a0a" }}>
       <AmbientBackground />
 
       {/* Tournament complete banner (full-screen overlay) */}
@@ -183,7 +183,7 @@ export default function Home() {
         />
         <div
           className="flex items-center px-4"
-          style={{ background: "rgba(5,5,10,0.97)", borderBottom: "1px solid rgba(201,162,39,0.15)" }}
+          style={{ background: "rgba(10,10,10,0.97)", borderBottom: "1px solid rgba(230,50,50,0.15)" }}
         >
           <NavTab active={activeTab === "arena"} onClick={() => setActiveTab("arena")} icon={<Sword className="w-3 h-3" />}>
             Arena
@@ -194,7 +194,7 @@ export default function Home() {
             icon={<Trophy className="w-3 h-3" />}
             badge={
               totalRoundsCompleted > 0
-                ? <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-mono" style={{ background: "rgba(201,162,39,0.2)", color: "#c9a227", fontSize: 9 }}>
+                ? <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-mono" style={{ background: "rgba(230,50,50,0.2)", color: "#e63232", fontSize: 9 }}>
                     {totalRoundsCompleted}/{TOTAL_ROUNDS}
                   </span>
                 : null
@@ -235,12 +235,12 @@ export default function Home() {
               <div className="glass-card rounded-2xl p-4 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Trophy className="w-3.5 h-3.5" style={{ color: "#c9a227" }} />
+                    <Trophy className="w-3.5 h-3.5" style={{ color: "#e63232" }} />
                     <span className="text-xs tracking-widest uppercase font-mono text-sand-dim">Round Winners</span>
                   </div>
                   <button
                     className="text-xs font-mono transition-colors"
-                    style={{ color: "#c9a227", cursor: "pointer" }}
+                    style={{ color: "#e63232", cursor: "pointer" }}
                     onClick={() => setActiveTab("leaderboard")}
                   >
                     {totalRoundsCompleted}/{TOTAL_ROUNDS}
@@ -251,7 +251,7 @@ export default function Home() {
                     <span
                       className="text-xs font-mono font-bold w-5 text-center"
                       style={{
-                        color: entry.rank === 1 ? "#ffd700" : entry.rank === 2 ? "#c0c0c0" : entry.rank === 3 ? "#cd7f32" : "#8a7a55",
+                        color: entry.rank === 1 ? "#ffffff" : entry.rank === 2 ? "#c0c0c0" : entry.rank === 3 ? "#cd7f32" : "#888888",
                       }}
                     >
                       {entry.rank}
@@ -259,17 +259,17 @@ export default function Home() {
                     <span className="text-xs font-mono text-sand flex-1 truncate">
                       {entry.walletAddress.slice(0, 6)}...{entry.walletAddress.slice(-3)}
                     </span>
-                    <span className="text-xs font-mono" style={{ color: "#c9a227" }}>{entry.roundsWon}W</span>
+                    <span className="text-xs font-mono" style={{ color: "#e63232" }}>{entry.roundsWon}W</span>
                   </div>
                 ))}
                 {leaderboard.length === 0 && (
                   <span className="text-xs text-sand-dim font-mono">No winners yet</span>
                 )}
                 {/* Mini progress bar */}
-                <div className="w-full rounded-full overflow-hidden mt-1" style={{ height: 3, background: "rgba(201,162,39,0.1)" }}>
+                <div className="w-full rounded-full overflow-hidden mt-1" style={{ height: 3, background: "rgba(230,50,50,0.1)" }}>
                   <div
                     className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${(totalRoundsCompleted / TOTAL_ROUNDS) * 100}%`, background: "linear-gradient(90deg,#c9a227,#e6b800)" }}
+                    style={{ width: `${(totalRoundsCompleted / TOTAL_ROUNDS) * 100}%`, background: "linear-gradient(90deg,#e63232,#e63232)" }}
                   />
                 </div>
               </div>
@@ -280,7 +280,7 @@ export default function Home() {
               <div className="text-center mb-3">
                 <h1
                   className="text-4xl md:text-5xl font-bold tracking-widest uppercase text-balance"
-                  style={{ fontFamily: "Georgia, serif", color: "#c9a227", lineHeight: 1.1, textShadow: "0 0 40px rgba(201,162,39,0.35)" }}
+                  style={{ fontFamily: "Georgia, serif", color: "#e63232", lineHeight: 1.1, textShadow: "0 0 40px rgba(230,50,50,0.35)" }}
                 >
                   ClawBattle
                 </h1>
@@ -313,23 +313,23 @@ export default function Home() {
               {/* Rules card */}
               <div
                 className="glass-card rounded-2xl p-4 flex flex-col gap-2.5"
-                style={{ border: "1px solid rgba(201,162,39,0.2)" }}
+                style={{ border: "1px solid rgba(230,50,50,0.2)" }}
               >
                 <div className="flex items-center gap-2">
-                  <Shield className="w-3.5 h-3.5" style={{ color: "#c9a227" }} />
+                  <Shield className="w-3.5 h-3.5" style={{ color: "#e63232" }} />
                   <span className="text-xs font-mono tracking-widest uppercase text-sand-dim">ClawBattle Rules</span>
                 </div>
                 {[
                   { dot: "#22c55e", text: "Buy token → Enter arena automatically" },
-                  { dot: "#c9a227", text: "Sell token → Instant elimination" },
+                  { dot: "#e63232", text: "Sell token → Instant elimination" },
                   { dot: "#4a9eff", text: "Hold more → Higher HP + strength" },
                   { dot: "#ff2e2e", text: "Last fighter alive wins the round" },
-                  { dot: "#c9a227", text: `10 rounds played, then shuffle all winners` },
-                  { dot: "#ffd700", text: "3 random winners share 50% of rewards" },
+                  { dot: "#e63232", text: `10 rounds played, then shuffle all winners` },
+                  { dot: "#ffffff", text: "3 random winners share 50% of rewards" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ background: item.dot, boxShadow: `0 0 4px ${item.dot}80` }} />
-                    <span className="text-xs font-mono leading-relaxed" style={{ color: "#8a7a55" }}>{item.text}</span>
+                    <span className="text-xs font-mono leading-relaxed" style={{ color: "#888888" }}>{item.text}</span>
                   </div>
                 ))}
               </div>
@@ -380,7 +380,7 @@ export default function Home() {
                       <p className="text-xs font-mono tracking-widest uppercase text-sand-dim mb-1">Grand Winners</p>
                       <h3
                         className="text-xl font-bold"
-                        style={{ fontFamily: "Georgia, serif", color: "#ffd700", textShadow: "0 0 20px rgba(255,215,0,0.5)" }}
+                        style={{ fontFamily: "Georgia, serif", color: "#ffffff", textShadow: "0 0 20px rgba(255,255,255,0.5)" }}
                       >
                         50% Rewards Split
                       </h3>
@@ -394,13 +394,13 @@ export default function Home() {
                           key={w}
                           className="rounded-xl p-3"
                           style={{
-                            background: i === 0 ? "rgba(255,215,0,0.08)" : i === 1 ? "rgba(192,192,192,0.06)" : "rgba(205,127,50,0.06)",
-                            border:     `1px solid ${i === 0 ? "rgba(255,215,0,0.4)" : i === 1 ? "rgba(192,192,192,0.3)" : "rgba(205,127,50,0.3)"}`,
+                            background: i === 0 ? "rgba(255,255,255,0.08)" : i === 1 ? "rgba(192,192,192,0.06)" : "rgba(205,127,50,0.06)",
+                            border:     `1px solid ${i === 0 ? "rgba(255,255,255,0.4)" : i === 1 ? "rgba(192,192,192,0.3)" : "rgba(205,127,50,0.3)"}`,
                           }}
                         >
                           <p
                             className="text-xs font-mono font-bold mb-0.5"
-                            style={{ color: i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : "#cd7f32" }}
+                            style={{ color: i === 0 ? "#ffffff" : i === 1 ? "#c0c0c0" : "#cd7f32" }}
                           >
                             {i === 0 ? "🥇 1st Place" : i === 1 ? "🥈 2nd Place" : "🥉 3rd Place"}
                           </p>
@@ -413,7 +413,7 @@ export default function Home() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs font-mono text-center"
-                      style={{ color: "#c9a227" }}
+                      style={{ color: "#e63232" }}
                     >
                       Follow @ClawBattleAI on X for payout confirmation →
                     </a>
@@ -423,14 +423,14 @@ export default function Home() {
                 {/* Season stats */}
                 <div
                   className="glass-card rounded-2xl p-4 flex flex-col gap-3"
-                  style={{ border: "1px solid rgba(201,162,39,0.18)" }}
+                  style={{ border: "1px solid rgba(230,50,50,0.18)" }}
                 >
                   <span className="text-xs font-mono tracking-widest uppercase text-sand-dim">Season Stats</span>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: "Rounds Played",      value: `${totalRoundsCompleted}/${TOTAL_ROUNDS}`, color: "#c9a227" },
+                      { label: "Rounds Played",      value: `${totalRoundsCompleted}/${TOTAL_ROUNDS}`, color: "#e63232" },
                       { label: "Round Winners",       value: leaderboard.length,                        color: "#4a9eff" },
-                      { label: "Grand Winners",       value: grandWinners.length,                       color: "#ffd700" },
+                      { label: "Grand Winners",       value: grandWinners.length,                       color: "#ffffff" },
                       { label: "Rounds Left",         value: Math.max(0, TOTAL_ROUNDS - totalRoundsCompleted), color: "#22c55e" },
                     ].map((s) => (
                       <div key={s.label} className="flex flex-col gap-0.5 rounded-xl p-2.5" style={{ background: "rgba(0,0,0,0.3)" }}>
@@ -461,7 +461,7 @@ export default function Home() {
 
       <footer
         className="relative z-10 px-5 py-3 flex items-center justify-between flex-wrap gap-2"
-        style={{ borderTop: "1px solid rgba(201,162,39,0.15)", background: "rgba(5,5,10,0.95)" }}
+        style={{ borderTop: "1px solid rgba(230,50,50,0.15)", background: "rgba(10,10,10,0.95)" }}
       >
         <span className="text-xs font-mono text-sand-dim">
           CLAWBATTLE · pump.fun Battle Grounds · 10-Round Tournament · 24/7 LIVE

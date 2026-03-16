@@ -22,7 +22,7 @@ interface LeaderboardProps {
 }
 
 const RANK_COLORS: Record<number, { color: string; bg: string; label: string }> = {
-  1: { color: "#ffd700", bg: "rgba(255,215,0,0.1)",    label: "I" },
+  1: { color: "#ffffff", bg: "rgba(255,255,255,0.1)",    label: "I" },
   2: { color: "#c0c0c0", bg: "rgba(192,192,192,0.08)", label: "II" },
   3: { color: "#cd7f32", bg: "rgba(205,127,50,0.08)",  label: "III" },
 }
@@ -43,7 +43,7 @@ export function Leaderboard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Trophy className="w-4 h-4" style={{ color: "#c9a227" }} />
+          <Trophy className="w-4 h-4" style={{ color: "#e63232" }} />
           <span className="text-sm font-bold tracking-widest uppercase font-mono text-gold">Leaderboard</span>
         </div>
         <span className="text-xs font-mono text-sand-dim">{entries.length} winner{entries.length !== 1 ? "s" : ""}</span>
@@ -53,19 +53,19 @@ export function Leaderboard({
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono text-sand-dim tracking-wider uppercase">Tournament Progress</span>
-          <span className="text-xs font-mono font-bold" style={{ color: progress >= totalRounds ? "#ffd700" : "#c9a227" }}>
+          <span className="text-xs font-mono font-bold" style={{ color: progress >= totalRounds ? "#ffffff" : "#e63232" }}>
             {progress >= totalRounds ? "COMPLETE ✓" : `Round ${progress} / ${totalRounds}`}
           </span>
         </div>
-        <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: "rgba(201,162,39,0.1)", border: "1px solid rgba(201,162,39,0.15)" }}>
+        <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: "rgba(230,50,50,0.1)", border: "1px solid rgba(230,50,50,0.15)" }}>
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
               width: `${pct}%`,
               background: progress >= totalRounds
-                ? "linear-gradient(90deg, #ffd700, #c9a227)"
-                : "linear-gradient(90deg, #c9a227, #e6b800)",
-              boxShadow: `0 0 8px rgba(201,162,39,${progress >= totalRounds ? 0.7 : 0.4})`,
+                ? "linear-gradient(90deg, #ffffff, #e63232)"
+                : "linear-gradient(90deg, #e63232, #e63232)",
+              boxShadow: `0 0 8px rgba(230,50,50,${progress >= totalRounds ? 0.7 : 0.4})`,
             }}
           />
         </div>
@@ -78,9 +78,9 @@ export function Leaderboard({
               style={{
                 height: 3,
                 background: i < progress
-                  ? (i < progress && progress >= totalRounds ? "#ffd700" : "#c9a227")
-                  : "rgba(201,162,39,0.15)",
-                boxShadow: i < progress ? "0 0 4px rgba(201,162,39,0.4)" : "none",
+                  ? (i < progress && progress >= totalRounds ? "#ffffff" : "#e63232")
+                  : "rgba(230,50,50,0.15)",
+                boxShadow: i < progress ? "0 0 4px rgba(230,50,50,0.4)" : "none",
               }}
             />
           ))}
@@ -91,11 +91,11 @@ export function Leaderboard({
       {grandWinners.length > 0 && (
         <div
           className="rounded-xl p-3"
-          style={{ background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.45)" }}
+          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.45)" }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <Crown className="w-4 h-4" style={{ color: "#ffd700" }} />
-            <span className="text-xs font-bold tracking-widest uppercase font-mono" style={{ color: "#ffd700" }}>
+            <Crown className="w-4 h-4" style={{ color: "#ffffff" }} />
+            <span className="text-xs font-bold tracking-widest uppercase font-mono" style={{ color: "#ffffff" }}>
               Grand Winners — 50% Rewards Split
             </span>
           </div>
@@ -104,14 +104,14 @@ export function Leaderboard({
               <div key={wallet} className="flex items-center gap-2">
                 <span
                   className="text-xs font-mono w-5 text-center font-bold"
-                  style={{ color: i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : "#cd7f32" }}
+                  style={{ color: i === 0 ? "#ffffff" : i === 1 ? "#c0c0c0" : "#cd7f32" }}
                 >
                   {i + 1}
                 </span>
                 <span className="text-xs font-mono text-sand">{wallet.slice(0, 8)}...{wallet.slice(-6)}</span>
                 <span
                   className="ml-auto text-xs font-mono px-2 py-0.5 rounded"
-                  style={{ background: "rgba(255,215,0,0.15)", color: "#ffd700", border: "1px solid rgba(255,215,0,0.4)" }}
+                  style={{ background: "rgba(255,255,255,0.15)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.4)" }}
                 >
                   WINNER
                 </span>
@@ -125,25 +125,25 @@ export function Leaderboard({
       <div className="flex flex-col gap-2">
         {entries.length === 0 ? (
           <div className="py-8 flex flex-col items-center gap-2">
-            <Swords className="w-8 h-8 opacity-20" style={{ color: "#c9a227" }} />
+            <Swords className="w-8 h-8 opacity-20" style={{ color: "#e63232" }} />
             <span className="text-xs text-sand-dim font-mono">No winners yet. Battles will begin soon.</span>
           </div>
         ) : (
           entries.map((entry) => {
-            const rankStyle = RANK_COLORS[entry.rank] || { color: "#8a7a55", bg: "rgba(138,122,85,0.05)", label: `${entry.rank}` }
+            const rankStyle = RANK_COLORS[entry.rank] || { color: "#888888", bg: "rgba(138,122,85,0.05)", label: `${entry.rank}` }
             const isGrand   = grandWinners.includes(entry.walletAddress)
             return (
               <div
                 key={entry.walletAddress}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200"
                 style={{
-                  background: isGrand ? "rgba(255,215,0,0.08)" : rankStyle.bg,
+                  background: isGrand ? "rgba(255,255,255,0.08)" : rankStyle.bg,
                   border: isGrand
-                    ? "1px solid rgba(255,215,0,0.5)"
+                    ? "1px solid rgba(255,255,255,0.5)"
                     : entry.rank <= 3
                     ? `1px solid ${rankStyle.color}33`
-                    : "1px solid rgba(201,162,39,0.08)",
-                  boxShadow: isGrand ? "0 0 12px rgba(255,215,0,0.15)" : "none",
+                    : "1px solid rgba(230,50,50,0.08)",
+                  boxShadow: isGrand ? "0 0 12px rgba(255,255,255,0.15)" : "none",
                 }}
               >
                 {/* Rank badge */}
@@ -171,7 +171,7 @@ export function Leaderboard({
                     {entry.roundsWon} round win{entry.roundsWon !== 1 ? "s" : ""}
                   </p>
                 </div>
-                {isGrand && <Crown className="w-4 h-4 flex-shrink-0" style={{ color: "#ffd700" }} />}
+                {isGrand && <Crown className="w-4 h-4 flex-shrink-0" style={{ color: "#ffffff" }} />}
               </div>
             )
           })
@@ -183,9 +183,9 @@ export function Leaderboard({
         <button
           onClick={onRunLottery}
           className="w-full py-3 rounded-xl text-sm font-bold font-mono tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2"
-          style={{ background: "rgba(201,162,39,0.15)", border: "1px solid rgba(201,162,39,0.5)", color: "#c9a227" }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(201,162,39,0.25)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(201,162,39,0.3)" }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(201,162,39,0.15)"; e.currentTarget.style.boxShadow = "none" }}
+          style={{ background: "rgba(230,50,50,0.15)", border: "1px solid rgba(230,50,50,0.5)", color: "#e63232" }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(230,50,50,0.25)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(230,50,50,0.3)" }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(230,50,50,0.15)"; e.currentTarget.style.boxShadow = "none" }}
         >
           <Shuffle className="w-4 h-4" />
           Run Grand Lottery
@@ -302,7 +302,7 @@ export function LotteryWheel({ entries, onComplete, autoStart = false, preselect
       {/* Title */}
       <div className="flex flex-col items-center gap-1">
         <div className="flex items-center gap-2">
-          <Crown className="w-5 h-5" style={{ color: "#ffd700" }} />
+          <Crown className="w-5 h-5" style={{ color: "#ffffff" }} />
           <span className="text-sm font-bold tracking-widest uppercase font-mono text-gold">Grand Lottery</span>
         </div>
         <p className="text-xs text-sand-dim font-mono text-center max-w-xs">
@@ -315,10 +315,10 @@ export function LotteryWheel({ entries, onComplete, autoStart = false, preselect
         className="w-full rounded-xl p-4 flex flex-col items-center gap-2"
         style={{
           background:  "rgba(0,0,0,0.4)",
-          border:      `2px solid ${phase === "picked" ? "rgba(255,215,0,0.7)" : "rgba(201,162,39,0.2)"}`,
+          border:      `2px solid ${phase === "picked" ? "rgba(255,255,255,0.7)" : "rgba(230,50,50,0.2)"}`,
           minHeight:   100,
           transition:  "border-color 0.3s",
-          boxShadow:   phase === "picked" ? "0 0 30px rgba(255,215,0,0.2)" : "none",
+          boxShadow:   phase === "picked" ? "0 0 30px rgba(255,255,255,0.2)" : "none",
         }}
       >
         {phase === "idle" && (
@@ -336,8 +336,8 @@ export function LotteryWheel({ entries, onComplete, autoStart = false, preselect
             <div
               className="font-mono font-bold text-sm text-center px-2"
               style={{
-                color:       phase === "picked" ? "#ffd700" : "#c9a227",
-                textShadow:  phase === "picked" ? "0 0 24px rgba(255,215,0,0.8)" : "none",
+                color:       phase === "picked" ? "#ffffff" : "#e63232",
+                textShadow:  phase === "picked" ? "0 0 24px rgba(255,255,255,0.8)" : "none",
                 animation:   phase === "spinning" ? "countdown-pulse 0.15s infinite" : "none",
                 wordBreak:   "break-all",
                 transition:  "color 0.3s, text-shadow 0.3s",
@@ -362,16 +362,16 @@ export function LotteryWheel({ entries, onComplete, autoStart = false, preselect
               key={wallet}
               className="flex items-center gap-2 rounded-lg px-3 py-2"
               style={{
-                background: "rgba(201,162,39,0.1)",
-                border:     "1px solid rgba(201,162,39,0.35)",
+                background: "rgba(230,50,50,0.1)",
+                border:     "1px solid rgba(230,50,50,0.35)",
                 animation:  "enter-arena 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both",
-                boxShadow:  i === 0 ? "0 0 12px rgba(255,215,0,0.2)" : "none",
+                boxShadow:  i === 0 ? "0 0 12px rgba(255,255,255,0.2)" : "none",
               }}
             >
-              <span className="font-mono font-bold text-sm w-5 text-center" style={{ color: i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : "#cd7f32" }}>
+              <span className="font-mono font-bold text-sm w-5 text-center" style={{ color: i === 0 ? "#ffffff" : i === 1 ? "#c0c0c0" : "#cd7f32" }}>
                 {i + 1}
               </span>
-              <Crown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : "#cd7f32" }} />
+              <Crown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: i === 0 ? "#ffffff" : i === 1 ? "#c0c0c0" : "#cd7f32" }} />
               <span className="text-xs font-mono text-sand truncate">{wallet.slice(0, 8)}...{wallet.slice(-6)}</span>
             </div>
           ))}
@@ -383,9 +383,9 @@ export function LotteryWheel({ entries, onComplete, autoStart = false, preselect
         <button
           onClick={runManualLottery}
           className="w-full py-3 rounded-xl text-sm font-bold font-mono tracking-wider uppercase transition-all duration-200"
-          style={{ background: "rgba(201,162,39,0.2)", border: "1px solid rgba(201,162,39,0.6)", color: "#c9a227", boxShadow: "0 0 20px rgba(201,162,39,0.2)" }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(201,162,39,0.3)" }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(201,162,39,0.2)" }}
+          style={{ background: "rgba(230,50,50,0.2)", border: "1px solid rgba(230,50,50,0.6)", color: "#e63232", boxShadow: "0 0 20px rgba(230,50,50,0.2)" }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(230,50,50,0.3)" }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(230,50,50,0.2)" }}
         >
           Start Lottery Draw
         </button>

@@ -120,36 +120,36 @@ function WinnerPopup({ wallet, round, onClose }: { wallet: string; round: number
       <div
         className="flex flex-col items-center gap-5 rounded-3xl p-8 text-center"
         style={{
-          background: "linear-gradient(145deg, #0e0a02, #1a1208)",
-          border: "2px solid #c9a227",
-          boxShadow: "0 0 80px rgba(201,162,39,0.5), 0 0 140px rgba(201,162,39,0.2), inset 0 0 40px rgba(201,162,39,0.06)",
+          background: "linear-gradient(145deg, #0e0a02, #180a0a)",
+          border: "2px solid #e63232",
+          boxShadow: "0 0 80px rgba(230,50,50,0.5), 0 0 140px rgba(230,50,50,0.2), inset 0 0 40px rgba(230,50,50,0.06)",
           maxWidth: 420,
           width: "90vw",
           animation: "enter-arena 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both",
         }}
       >
-        <div style={{ fontSize: 40, lineHeight: 1, filter: "drop-shadow(0 0 12px rgba(255,215,0,0.7))" }} aria-hidden>
+        <div style={{ fontSize: 40, lineHeight: 1, filter: "drop-shadow(0 0 12px rgba(255,255,255,0.7))" }} aria-hidden>
           &#127807;
         </div>
         <div>
-          <p className="text-xs font-mono tracking-widest uppercase mb-2" style={{ color: "#8a7a55" }}>
+          <p className="text-xs font-mono tracking-widest uppercase mb-2" style={{ color: "#888888" }}>
             Round {round} Complete
           </p>
-          <h2 className="text-3xl font-bold tracking-widest uppercase" style={{ fontFamily: "Georgia,serif", color: "#c9a227", lineHeight: 1.2, textShadow: "0 0 30px rgba(201,162,39,0.5)" }}>
+          <h2 className="text-3xl font-bold tracking-widest uppercase" style={{ fontFamily: "Georgia,serif", color: "#e63232", lineHeight: 1.2, textShadow: "0 0 30px rgba(230,50,50,0.5)" }}>
             Victory!
           </h2>
-          <p className="text-sm font-mono mt-1" style={{ color: "#f0e6c8" }}>The last gladiator stands</p>
+          <p className="text-sm font-mono mt-1" style={{ color: "#f0f0f0" }}>The last gladiator stands</p>
         </div>
-        <div style={{ width: "100%", height: 1, background: "linear-gradient(to right, transparent, rgba(201,162,39,0.6), transparent)" }} />
+        <div style={{ width: "100%", height: 1, background: "linear-gradient(to right, transparent, rgba(230,50,50,0.6), transparent)" }} />
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-mono tracking-widest uppercase" style={{ color: "#8a7a55" }}>Winner</p>
-          <div className="px-4 py-2 rounded-xl font-mono text-sm font-bold" style={{ background: "rgba(201,162,39,0.1)", border: "1px solid rgba(201,162,39,0.4)", color: "#ffd700", wordBreak: "break-all", textShadow: "0 0 14px rgba(255,215,0,0.5)" }}>
+          <p className="text-xs font-mono tracking-widest uppercase" style={{ color: "#888888" }}>Winner</p>
+          <div className="px-4 py-2 rounded-xl font-mono text-sm font-bold" style={{ background: "rgba(230,50,50,0.1)", border: "1px solid rgba(230,50,50,0.4)", color: "#ffffff", wordBreak: "break-all", textShadow: "0 0 14px rgba(255,255,255,0.5)" }}>
             {wallet}
           </div>
         </div>
         <div className="flex gap-2" aria-hidden>
           {[0, 1, 2].map((i) => (
-            <div key={i} style={{ fontSize: 18, animation: `countdown-pulse ${0.8 + i * 0.2}s ease-in-out infinite`, color: "#ffd700", filter: "drop-shadow(0 0 6px rgba(255,215,0,0.8))" }}>
+            <div key={i} style={{ fontSize: 18, animation: `countdown-pulse ${0.8 + i * 0.2}s ease-in-out infinite`, color: "#ffffff", filter: "drop-shadow(0 0 6px rgba(255,255,255,0.8))" }}>
               &#9733;
             </div>
           ))}
@@ -157,9 +157,9 @@ function WinnerPopup({ wallet, round, onClose }: { wallet: string; round: number
         <button
           onClick={onClose}
           className="px-6 py-2 rounded-xl text-xs font-mono tracking-widest uppercase transition-all duration-200"
-          style={{ background: "rgba(201,162,39,0.15)", border: "1px solid rgba(201,162,39,0.5)", color: "#c9a227" }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(201,162,39,0.28)" }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(201,162,39,0.15)" }}
+          style={{ background: "rgba(230,50,50,0.15)", border: "1px solid rgba(230,50,50,0.5)", color: "#e63232" }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(230,50,50,0.28)" }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(230,50,50,0.15)" }}
         >
           Continue
         </button>
@@ -236,30 +236,30 @@ export function BattleArena({ fighters, battlePhase, round, winnerId, showWinner
       <div className="relative flex flex-col items-center w-full">
         {/* Status badges */}
         <div className="flex items-center gap-3 mb-3 flex-wrap justify-center">
-          <div className="glass-card px-4 py-1.5 rounded-full flex items-center gap-2" style={{ border: "1px solid rgba(201,162,39,0.4)" }}>
+          <div className="glass-card px-4 py-1.5 rounded-full flex items-center gap-2" style={{ border: "1px solid rgba(230,50,50,0.4)" }}>
             <span className="text-xs text-sand-dim font-mono tracking-widest uppercase">Round</span>
             <span className="text-gold font-mono font-bold text-lg">{round}</span>
           </div>
           <div
             className="glass-card px-4 py-1.5 rounded-full flex items-center gap-2"
-            style={{ border: `1px solid ${battlePhase === "battle" ? "rgba(204,17,17,0.6)" : "rgba(201,162,39,0.3)"}` }}
+            style={{ border: `1px solid ${battlePhase === "battle" ? "rgba(204,17,17,0.6)" : "rgba(230,50,50,0.3)"}` }}
           >
             <div
               className="w-2 h-2 rounded-full"
               style={{
-                background: battlePhase === "battle" ? "#cc1111" : battlePhase === "lobby" ? "#c9a227" : "#22c55e",
-                boxShadow: `0 0 8px ${battlePhase === "battle" ? "#cc1111" : battlePhase === "lobby" ? "#c9a227" : "#22c55e"}`,
+                background: battlePhase === "battle" ? "#cc1111" : battlePhase === "lobby" ? "#e63232" : "#22c55e",
+                boxShadow: `0 0 8px ${battlePhase === "battle" ? "#cc1111" : battlePhase === "lobby" ? "#e63232" : "#22c55e"}`,
                 animation: battlePhase === "battle" ? "pulse-crimson 1s infinite" : "none",
               }}
             />
             <span
               className="text-xs font-mono tracking-widest uppercase"
-              style={{ color: battlePhase === "battle" ? "#cc1111" : battlePhase === "lobby" ? "#c9a227" : "#22c55e" }}
+              style={{ color: battlePhase === "battle" ? "#cc1111" : battlePhase === "lobby" ? "#e63232" : "#22c55e" }}
             >
               {battlePhase === "lobby" ? "Waiting" : battlePhase === "battle" ? "Live" : "Finished"}
             </span>
           </div>
-          <div className="glass-card px-3 py-1.5 rounded-full" style={{ border: "1px solid rgba(201,162,39,0.3)" }}>
+          <div className="glass-card px-3 py-1.5 rounded-full" style={{ border: "1px solid rgba(230,50,50,0.3)" }}>
             <span className="text-xs text-sand-dim font-mono">{aliveCount} / {fighters.length} alive</span>
           </div>
         </div>
@@ -270,19 +270,19 @@ export function BattleArena({ fighters, battlePhase, round, winnerId, showWinner
             <div className="absolute inset-0 rounded-full pointer-events-none z-20" style={{ animation: "elimination-flash 0.6s ease-out forwards" }} />
           )}
 
-          <div className="absolute inset-0 rounded-full" style={{ border: "2px solid rgba(201,162,39,0.1)", boxShadow: "0 0 60px rgba(201,162,39,0.08)" }} />
-          <div className="absolute rounded-full" style={{ inset: 4, border: "1px solid transparent", borderTopColor: "rgba(201,162,39,0.5)", borderRightColor: "rgba(201,162,39,0.2)", borderBottomColor: "rgba(201,162,39,0.5)", borderLeftColor: "rgba(201,162,39,0.2)", animation: "ring-rotate 8s linear infinite" }} />
-          <div className="absolute rounded-full" style={{ inset: 14, border: "1px dashed rgba(201,162,39,0.18)", animation: "ring-rotate-reverse 12s linear infinite" }} />
+          <div className="absolute inset-0 rounded-full" style={{ border: "2px solid rgba(230,50,50,0.1)", boxShadow: "0 0 60px rgba(230,50,50,0.08)" }} />
+          <div className="absolute rounded-full" style={{ inset: 4, border: "1px solid transparent", borderTopColor: "rgba(230,50,50,0.5)", borderRightColor: "rgba(230,50,50,0.2)", borderBottomColor: "rgba(230,50,50,0.5)", borderLeftColor: "rgba(230,50,50,0.2)", animation: "ring-rotate 8s linear infinite" }} />
+          <div className="absolute rounded-full" style={{ inset: 14, border: "1px dashed rgba(230,50,50,0.18)", animation: "ring-rotate-reverse 12s linear infinite" }} />
 
           {/* Floor */}
-          <div className="absolute rounded-full" style={{ inset: 22, background: "radial-gradient(circle at 40% 35%, #2a1e0e 0%, #1a1008 40%, #0e0905 100%)", border: "3px solid rgba(201,162,39,0.35)", boxShadow: "inset 0 0 80px rgba(0,0,0,0.9), 0 0 80px rgba(201,162,39,0.12)" }} />
-          <div className="absolute rounded-full" style={{ inset: 32, background: "radial-gradient(ellipse at 40% 35%, #3d2e18 0%, #2a1e0e 50%, #1a1208 100%)" }} />
-          <div className="absolute rounded-full" style={{ inset: 44, border: "1px solid rgba(201,162,39,0.08)" }} />
-          <div className="absolute rounded-full" style={{ inset: 80, border: "1px solid rgba(201,162,39,0.06)" }} />
+          <div className="absolute rounded-full" style={{ inset: 22, background: "radial-gradient(circle at 40% 35%, #2a1e0e 0%, #1a1008 40%, #0e0905 100%)", border: "3px solid rgba(230,50,50,0.35)", boxShadow: "inset 0 0 80px rgba(0,0,0,0.9), 0 0 80px rgba(230,50,50,0.12)" }} />
+          <div className="absolute rounded-full" style={{ inset: 32, background: "radial-gradient(ellipse at 40% 35%, #3d2e18 0%, #2a1e0e 50%, #180a0a 100%)" }} />
+          <div className="absolute rounded-full" style={{ inset: 44, border: "1px solid rgba(230,50,50,0.08)" }} />
+          <div className="absolute rounded-full" style={{ inset: 80, border: "1px solid rgba(230,50,50,0.06)" }} />
 
           {/* Centre emblem */}
-          <div className="absolute rounded-full flex items-center justify-center" style={{ width: 56, height: 56, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(201,162,39,0.12), transparent)", border: "1px solid rgba(201,162,39,0.22)" }}>
-            <span style={{ color: "rgba(201,162,39,0.28)", fontSize: 26 }}>&#9876;</span>
+          <div className="absolute rounded-full flex items-center justify-center" style={{ width: 56, height: 56, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(230,50,50,0.12), transparent)", border: "1px solid rgba(230,50,50,0.22)" }}>
+            <span style={{ color: "rgba(230,50,50,0.28)", fontSize: 26 }}>&#9876;</span>
           </div>
 
           {/* Blood splatters during battle */}
@@ -335,7 +335,7 @@ export function BattleArena({ fighters, battlePhase, round, winnerId, showWinner
                   </div>
                 )}
                 {isWinner && battlePhase === "finished" && (
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono" style={{ color: "#ffd700", textShadow: "0 0 12px #ffd700", whiteSpace: "nowrap", fontSize: 9, letterSpacing: 2, animation: "float 1.6s ease-in-out infinite" }}>
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono" style={{ color: "#ffffff", textShadow: "0 0 12px #ffffff", whiteSpace: "nowrap", fontSize: 9, letterSpacing: 2, animation: "float 1.6s ease-in-out infinite" }}>
                     WINNER
                   </div>
                 )}
@@ -353,7 +353,7 @@ export function BattleArena({ fighters, battlePhase, round, winnerId, showWinner
           })}
 
           {battlePhase === "finished" && winnerId && (
-            <div className="absolute inset-0 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle at center, rgba(201,162,39,0.12) 0%, transparent 65%)" }} />
+            <div className="absolute inset-0 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle at center, rgba(230,50,50,0.12) 0%, transparent 65%)" }} />
           )}
         </div>
 
@@ -366,8 +366,8 @@ export function BattleArena({ fighters, battlePhase, round, winnerId, showWinner
               title={f.walletAddress}
               style={{
                 width: 8, height: 8,
-                background: f.isEliminated ? "rgba(139,0,0,0.3)" : "#c9a227",
-                boxShadow: f.isEliminated ? "none" : "0 0 6px rgba(201,162,39,0.8)",
+                background: f.isEliminated ? "rgba(139,0,0,0.3)" : "#e63232",
+                boxShadow: f.isEliminated ? "none" : "0 0 6px rgba(230,50,50,0.8)",
                 transform: f.isEliminated ? "scale(0.6)" : "scale(1)",
               }}
             />

@@ -23,7 +23,7 @@ export function LobbyCountdown({ timeRemaining, totalTime, fighters, maxFighters
       <div className="flex items-center gap-2">
         <div
           className="w-2 h-2 rounded-full"
-          style={{ background: "#c9a227", boxShadow: "0 0 8px rgba(201,162,39,0.8)", animation: "pulse-gold 1.5s infinite" }}
+          style={{ background: "#e63232", boxShadow: "0 0 8px rgba(230,50,50,0.8)", animation: "pulse-gold 1.5s infinite" }}
         />
         <span className="text-xs tracking-widest uppercase font-mono text-sand-dim">Battle Starting</span>
       </div>
@@ -31,15 +31,15 @@ export function LobbyCountdown({ timeRemaining, totalTime, fighters, maxFighters
       <div className="flex flex-col items-center gap-3">
         <div className="relative" style={{ width: 120, height: 120 }}>
           <svg width="120" height="120" viewBox="0 0 120 120" className="absolute inset-0" style={{ transform: "rotate(-90deg)" }}>
-            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(201,162,39,0.1)" strokeWidth="6" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(230,50,50,0.1)" strokeWidth="6" />
             <circle
               cx="60" cy="60" r="52" fill="none"
-              stroke={isUrgent ? "#cc1111" : "#c9a227"}
+              stroke={isUrgent ? "#cc1111" : "#e63232"}
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
-              style={{ transition: "stroke-dashoffset 1s linear, stroke 0.3s ease", filter: `drop-shadow(0 0 6px ${isUrgent ? "#cc1111" : "#c9a227"})` }}
+              style={{ transition: "stroke-dashoffset 1s linear, stroke 0.3s ease", filter: `drop-shadow(0 0 6px ${isUrgent ? "#cc1111" : "#e63232"})` }}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -47,8 +47,8 @@ export function LobbyCountdown({ timeRemaining, totalTime, fighters, maxFighters
               className="font-mono font-bold leading-none"
               style={{
                 fontSize: 38,
-                color: isUrgent ? "#ff2e2e" : "#c9a227",
-                textShadow: `0 0 20px ${isUrgent ? "rgba(255,46,46,0.7)" : "rgba(201,162,39,0.6)"}`,
+                color: isUrgent ? "#ff2e2e" : "#e63232",
+                textShadow: `0 0 20px ${isUrgent ? "rgba(255,46,46,0.7)" : "rgba(230,50,50,0.6)"}`,
                 animation: isUrgent ? "countdown-pulse 0.5s ease-in-out infinite" : "none",
               }}
             >
@@ -59,7 +59,7 @@ export function LobbyCountdown({ timeRemaining, totalTime, fighters, maxFighters
         </div>
 
         <div className="text-center">
-          <span className="text-2xl font-bold font-mono" style={{ color: "#c9a227" }}>{fighters.length}</span>
+          <span className="text-2xl font-bold font-mono" style={{ color: "#e63232" }}>{fighters.length}</span>
           <span className="text-sand-dim font-mono text-sm"> / {maxFighters}</span>
           <p className="text-xs text-sand-dim mt-0.5 tracking-wide">Gladiators Entered</p>
         </div>
@@ -74,9 +74,9 @@ export function LobbyCountdown({ timeRemaining, totalTime, fighters, maxFighters
               className="rounded transition-all duration-300"
               style={{
                 height: 8,
-                background: filled ? "rgba(201,162,39,0.8)" : "rgba(201,162,39,0.1)",
-                border: filled ? "1px solid rgba(201,162,39,0.6)" : "1px solid rgba(201,162,39,0.15)",
-                boxShadow: filled ? "0 0 4px rgba(201,162,39,0.4)" : "none",
+                background: filled ? "rgba(230,50,50,0.8)" : "rgba(230,50,50,0.1)",
+                border: filled ? "1px solid rgba(230,50,50,0.6)" : "1px solid rgba(230,50,50,0.15)",
+                boxShadow: filled ? "0 0 4px rgba(230,50,50,0.4)" : "none",
                 transform: filled ? "scaleY(1.2)" : "scaleY(1)",
               }}
             />
@@ -120,15 +120,15 @@ export function FighterRoster({ fighters }: FighterRosterProps) {
       <div
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto pb-2"
-        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(201,162,39,0.3) transparent" }}
+        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(230,50,50,0.3) transparent" }}
       >
         {fighters.map((fighter, idx) => (
           <div
             key={fighter.id}
             className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-xl p-2 transition-all duration-300"
             style={{
-              background: fighter.isEliminated ? "rgba(139,0,0,0.15)" : "rgba(201,162,39,0.06)",
-              border: fighter.isEliminated ? "1px solid rgba(139,0,0,0.3)" : "1px solid rgba(201,162,39,0.2)",
+              background: fighter.isEliminated ? "rgba(139,0,0,0.15)" : "rgba(230,50,50,0.06)",
+              border: fighter.isEliminated ? "1px solid rgba(139,0,0,0.3)" : "1px solid rgba(230,50,50,0.2)",
               opacity: fighter.isEliminated ? 0.5 : 1,
               animationName: "enter-arena",
               animationDuration: "0.5s",
@@ -166,7 +166,7 @@ export function BattleStats({ fighters, round }: BattleStatsProps) {
       <span className="text-xs tracking-widest uppercase font-mono text-sand-dim">Battle Stats</span>
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Round",  value: round,      color: "#c9a227" },
+          { label: "Round",  value: round,      color: "#e63232" },
           { label: "Alive",  value: alive,      color: "#22c55e" },
           { label: "Fallen", value: eliminated, color: "#cc1111" },
         ].map((stat) => (

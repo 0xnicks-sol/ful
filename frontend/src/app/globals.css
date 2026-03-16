@@ -2,62 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Arena color system (CSS variables) ───────────────────────────────────── */
+/* ── ClawBattle color system (red · white · black) ────────────────────────── */
 :root {
-  --background: #05050a;
-  --foreground: #f0e6c8;
-  --card: rgba(12, 10, 5, 0.75);
-  --card-foreground: #f0e6c8;
-  --popover: #0c0a05;
-  --popover-foreground: #f0e6c8;
-  --primary: #c9a227;
-  --primary-foreground: #05050a;
-  --secondary: #1a1208;
-  --secondary-foreground: #f0e6c8;
-  --muted: #1a1208;
-  --muted-foreground: #8a7a55;
-  --accent: #8b0000;
-  --accent-foreground: #f0e6c8;
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --card: rgba(16, 10, 10, 0.75);
+  --card-foreground: #ffffff;
+  --popover: #100a0a;
+  --popover-foreground: #ffffff;
+  --primary: #e63232;
+  --primary-foreground: #ffffff;
+  --secondary: #1a0808;
+  --secondary-foreground: #ffffff;
+  --muted: #1a0808;
+  --muted-foreground: #888888;
+  --accent: #cc0000;
+  --accent-foreground: #ffffff;
   --destructive: #ff2e2e;
-  --destructive-foreground: #f0e6c8;
-  --border: rgba(201, 162, 39, 0.2);
-  --input: rgba(201, 162, 39, 0.15);
-  --ring: #c9a227;
+  --destructive-foreground: #ffffff;
+  --border: rgba(230, 50, 50, 0.2);
+  --input: rgba(230, 50, 50, 0.15);
+  --ring: #e63232;
   --radius: 0.5rem;
 
-  /* Arena-specific tokens */
-  --gold: #c9a227;
-  --gold-bright: #f0c040;
-  --gold-dim: #7a621a;
-  --crimson: #8b0000;
-  --crimson-bright: #cc1111;
+  /* Brand tokens — red / white / black from logo */
+  --gold: #e63232;
+  --gold-bright: #ff5555;
+  --gold-dim: #991a1a;
+  --crimson: #cc0000;
+  --crimson-bright: #e63232;
   --blood: #ff2e2e;
-  --sand: #f0e6c8;
-  --sand-dim: #8a7a55;
-  --glass-bg: rgba(12, 10, 5, 0.6);
-  --glass-border: rgba(201, 162, 39, 0.25);
-  --glass-hover: rgba(201, 162, 39, 0.08);
-  --smoke: rgba(255, 200, 100, 0.04);
+  --sand: #f0f0f0;
+  --sand-dim: #888888;
+  --glass-bg: rgba(16, 10, 10, 0.6);
+  --glass-border: rgba(230, 50, 50, 0.25);
+  --glass-hover: rgba(230, 50, 50, 0.08);
+  --smoke: rgba(230, 50, 50, 0.04);
 }
 
 /* ── Base layer ────────────────────────────────────────────────────────────── */
 @layer base {
   * {
     box-sizing: border-box;
-    border-color: rgba(201, 162, 39, 0.2);
+    border-color: rgba(230, 50, 50, 0.2);
   }
   html {
     scroll-behavior: smooth;
   }
   body {
-    background-color: #05050a;
-    color: #f0e6c8;
+    background-color: #0a0a0a;
+    color: #f0f0f0;
     overflow-x: hidden;
   }
   ::-webkit-scrollbar       { width: 6px; }
-  ::-webkit-scrollbar-track { background: #0c0a05; }
-  ::-webkit-scrollbar-thumb { background: rgba(201, 162, 39, 0.4); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(201, 162, 39, 0.7); }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: rgba(230, 50, 50, 0.4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(230, 50, 50, 0.7); }
 }
 
 /* ── Component utilities ───────────────────────────────────────────────────── */
@@ -69,26 +69,26 @@
     -webkit-backdrop-filter: blur(16px);
   }
   .glass-card:hover {
-    background: rgba(12, 10, 5, 0.75);
-    border-color: rgba(201, 162, 39, 0.45);
+    background: rgba(10, 10, 10, 0.75);
+    border-color: rgba(230, 50, 50, 0.45);
   }
 
   .gold-text  { color: var(--gold); }
-  .text-gold  { color: #c9a227; }
-  .text-sand  { color: #f0e6c8; }
-  .text-sand-dim { color: #8a7a55; }
+  .text-gold  { color: #e63232; }
+  .text-sand  { color: #f0f0f0; }
+  .text-sand-dim { color: #888888; }
 
-  .hover\:text-gold:hover { color: #c9a227; }
+  .hover\:text-gold:hover { color: #e63232; }
 
   .gold-glow {
-    text-shadow: 0 0 20px rgba(201, 162, 39, 0.6), 0 0 40px rgba(201, 162, 39, 0.3);
+    text-shadow: 0 0 20px rgba(230, 50, 50, 0.6), 0 0 40px rgba(230, 50, 50, 0.3);
   }
   .crimson-glow {
     text-shadow: 0 0 20px rgba(204, 17, 17, 0.8), 0 0 40px rgba(204, 17, 17, 0.4);
   }
   .arena-border {
     border: 1px solid var(--gold);
-    box-shadow: 0 0 12px rgba(201, 162, 39, 0.3), inset 0 0 12px rgba(201, 162, 39, 0.05);
+    box-shadow: 0 0 12px rgba(230, 50, 50, 0.3), inset 0 0 12px rgba(230, 50, 50, 0.05);
   }
 
   /* Pre-built animation helpers */
@@ -114,8 +114,8 @@
 }
 
 @keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 10px rgba(201, 162, 39, 0.3); }
-  50%       { box-shadow: 0 0 30px rgba(201, 162, 39, 0.7), 0 0 60px rgba(201, 162, 39, 0.3); }
+  0%, 100% { box-shadow: 0 0 10px rgba(230, 50, 50, 0.3); }
+  50%       { box-shadow: 0 0 30px rgba(230, 50, 50, 0.7), 0 0 60px rgba(230, 50, 50, 0.3); }
 }
 
 @keyframes pulse-crimson {

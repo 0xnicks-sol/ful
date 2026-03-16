@@ -19,9 +19,9 @@ function FeedEventIcon({ type }: { type: FeedEventType }) {
     join:        { icon: <UserPlus className="w-3 h-3" />,  color: "#22c55e" },
     eliminate:   { icon: <Sword className="w-3 h-3" />,     color: "#cc1111" },
     sell:        { icon: <UserMinus className="w-3 h-3" />, color: "#f59e0b" },
-    win:         { icon: <Trophy className="w-3 h-3" />,    color: "#c9a227" },
+    win:         { icon: <Trophy className="w-3 h-3" />,    color: "#e63232" },
     round_start: { icon: <Shield className="w-3 h-3" />,    color: "#4a9eff" },
-    round_end:   { icon: <Trophy className="w-3 h-3" />,    color: "#c9a227" },
+    round_end:   { icon: <Trophy className="w-3 h-3" />,    color: "#e63232" },
   }
   const { icon, color } = map[type]
   return (
@@ -40,9 +40,9 @@ function getEventText(event: FeedEvent) {
     case "join":        return <><span style={{ color: "#22c55e" }}>{short}</span>{" entered the arena"}</>
     case "eliminate":   return <><span style={{ color: "#cc1111" }}>{short}</span>{" was eliminated!"}</>
     case "sell":        return <><span style={{ color: "#f59e0b" }}>{short}</span>{" sold — removed from battle"}</>
-    case "win":         return <><span style={{ color: "#c9a227" }}>{short}</span>{" wins the round!"}</>
+    case "win":         return <><span style={{ color: "#e63232" }}>{short}</span>{" wins the round!"}</>
     case "round_start": return <span style={{ color: "#4a9eff" }}>{"Battle begins! Round " + (event.message || "")}</span>
-    case "round_end":   return <span style={{ color: "#c9a227" }}>{"Round " + (event.message || "") + " concluded"}</span>
+    case "round_end":   return <span style={{ color: "#e63232" }}>{"Round " + (event.message || "") + " concluded"}</span>
   }
 }
 
@@ -64,8 +64,8 @@ export function LiveTicker({ events }: TickerProps) {
       className="w-full overflow-hidden py-2"
       style={{
         background: "rgba(0,0,0,0.5)",
-        borderTop: "1px solid rgba(201,162,39,0.2)",
-        borderBottom: "1px solid rgba(201,162,39,0.2)",
+        borderTop: "1px solid rgba(230,50,50,0.2)",
+        borderBottom: "1px solid rgba(230,50,50,0.2)",
       }}
     >
       <div className="flex items-center whitespace-nowrap gap-8" style={{ width: "max-content", animation: "ticker 30s linear infinite" }}>
@@ -120,7 +120,7 @@ export function LiveFeedPanel({ events }: LiveFeedPanelProps) {
       <div
         ref={scrollRef}
         className="flex flex-col gap-2 overflow-y-auto flex-1"
-        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(201,162,39,0.3) transparent" }}
+        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(230,50,50,0.3) transparent" }}
       >
         {events.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-8">
@@ -134,11 +134,11 @@ export function LiveFeedPanel({ events }: LiveFeedPanelProps) {
               style={{
                 background:
                   event.type === "eliminate" ? "rgba(204,17,17,0.08)"
-                  : event.type === "win"     ? "rgba(201,162,39,0.08)"
+                  : event.type === "win"     ? "rgba(230,50,50,0.08)"
                   : event.type === "sell"    ? "rgba(245,158,11,0.08)"
                   : "rgba(255,255,255,0.03)",
                 border:
-                  event.type === "win"       ? "1px solid rgba(201,162,39,0.2)"
+                  event.type === "win"       ? "1px solid rgba(230,50,50,0.2)"
                   : event.type === "eliminate" ? "1px solid rgba(204,17,17,0.15)"
                   : "1px solid transparent",
                 animationName:     idx === 0 ? "enter-arena" : "none",
@@ -194,13 +194,13 @@ export function TokenInfoBar({
     <div
       className="w-full flex items-center justify-between gap-4 px-5 py-2.5 flex-wrap"
       style={{
-        background: "rgba(5,5,10,0.9)",
-        borderBottom: "1px solid rgba(201,162,39,0.25)",
+        background: "rgba(10,10,10,0.9)",
+        borderBottom: "1px solid rgba(230,50,50,0.25)",
         backdropFilter: "blur(12px)",
       }}
     >
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ border: "1px solid rgba(201,162,39,0.4)" }}>
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ border: "1px solid rgba(230,50,50,0.4)" }}>
           <Image
             src="/logoooooo-modified.png"
             alt="ClawBattle"
@@ -214,7 +214,7 @@ export function TokenInfoBar({
             <span className="font-bold text-sm text-sand">{tokenName}</span>
             <span
               className="text-xs font-mono px-1.5 py-0.5 rounded"
-              style={{ background: "rgba(201,162,39,0.15)", color: "#c9a227", border: "1px solid rgba(201,162,39,0.3)" }}
+              style={{ background: "rgba(230,50,50,0.15)", color: "#e63232", border: "1px solid rgba(230,50,50,0.3)" }}
             >
               {tokenSymbol}
             </span>
@@ -257,7 +257,7 @@ export function TokenInfoBar({
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 hover:opacity-90"
-          style={{ background: "rgba(201,162,39,0.15)", border: "1px solid rgba(201,162,39,0.4)", color: "#c9a227" }}
+          style={{ background: "rgba(230,50,50,0.15)", border: "1px solid rgba(230,50,50,0.4)", color: "#e63232" }}
         >
           pump.fun
           <ExternalLink className="w-3 h-3" />
@@ -267,7 +267,7 @@ export function TokenInfoBar({
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 hover:opacity-90"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#f0e6c8" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#f0f0f0" }}
         >
           X / Twitter
           <ExternalLink className="w-3 h-3" />

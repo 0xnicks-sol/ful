@@ -17,7 +17,7 @@ export interface GladiatorProps {
 function getGladiatorColors(wallet: string) {
   const hash = wallet.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const palettes = [
-    { primary: "#c9a227", secondary: "#8b4513", helmet: "#d4af37", plume: "#cc1111", shield: "#b8860b" },
+    { primary: "#e63232", secondary: "#8b4513", helmet: "#d4af37", plume: "#cc1111", shield: "#b8860b" },
     { primary: "#4a9eff", secondary: "#1a3a6e", helmet: "#6ab0ff", plume: "#ffffff", shield: "#2a5a9e" },
     { primary: "#7fff7f", secondary: "#1a5a1a", helmet: "#90ee90", plume: "#00aa00", shield: "#2d8a2d" },
     { primary: "#ff7f7f", secondary: "#6e1a1a", helmet: "#ff9999", plume: "#ffcc00", shield: "#8b2020" },
@@ -208,13 +208,13 @@ export function GladiatorCharacter({
           {/* Winner stars */}
           {isWinner && (
             <>
-              <circle cx="50" cy="4" r="3" fill="#ffd700" opacity="0.9">
+              <circle cx="50" cy="4" r="3" fill="#ffffff" opacity="0.9">
                 <animate attributeName="opacity" values="0.5;1;0.5" dur="1s" repeatCount="indefinite" />
               </circle>
-              <circle cx="44" cy="6" r="2" fill="#ffd700" opacity="0.7">
+              <circle cx="44" cy="6" r="2" fill="#ffffff" opacity="0.7">
                 <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1.2s" repeatCount="indefinite" />
               </circle>
-              <circle cx="56" cy="6" r="2" fill="#ffd700" opacity="0.7">
+              <circle cx="56" cy="6" r="2" fill="#ffffff" opacity="0.7">
                 <animate attributeName="opacity" values="0.3;0.8;0.3" dur="0.9s" repeatCount="indefinite" />
               </circle>
             </>
