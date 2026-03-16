@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { Copy, ExternalLink, Sword, Shield, Trophy, UserPlus, UserMinus } from "lucide-react"
+import { ExternalLink, Sword, Shield, Trophy, UserPlus, UserMinus } from "lucide-react"
 
 export type FeedEventType = "join" | "eliminate" | "sell" | "win" | "round_start" | "round_end"
 
@@ -191,14 +191,6 @@ export function TokenInfoBar({
   totalVolume,
   totalWinners = 0,
 }: TokenInfoBarProps) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(contractAddress)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   return (
     <div
       className="w-full flex items-center justify-between gap-4 px-5 py-2.5 flex-wrap"
@@ -229,13 +221,12 @@ export function TokenInfoBar({
             </span>
           </div>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-xs font-mono text-sand-dim">
-              {contractAddress.slice(0, 6)}...{contractAddress.slice(-6)}
+            <span
+              className="text-xs font-mono px-2 py-0.5 rounded"
+              style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.3)" }}
+            >
+              CA will live soon
             </span>
-            <button onClick={handleCopy} className="text-sand-dim hover:text-gold transition-colors" aria-label="Copy contract address">
-              <Copy className="w-3 h-3" />
-            </button>
-            {copied && <span className="text-xs font-mono" style={{ color: "#22c55e" }}>Copied!</span>}
           </div>
         </div>
       </div>
