@@ -3,8 +3,9 @@ import { Connection } from '@solana/web3.js';
 import prisma from '../config/database';
 import logger from '../config/logger';
 import timerService from './timer-service';
-import battleEntryService from './battle-entry';
+import battleEntryService, { MAX_FIGHTERS } from './battle-entry';
 import rewardService from './reward-service';
+import { leaderboardService } from './leaderboard-service';
 
 export interface BattleResult {
   roundId: number;
@@ -59,9 +60,16 @@ class BattleEngine {
         return;
       }
 
-      if (participants.length === 1) {
+      // Hard-cap at MAX_FIGHTERS — should already be enforced by battle-entry,
+      // but slice here as a safety net so the frontend never gets more than 30.
+      const capped = participants.slice(0, MAX_FIGHTERS);
+      if (capped.length !== participants.length) {
+        logger.warn(`⚠️  Round ${roundId} had ${participants.length} participants in DB — capped to ${MAX_FIGHTERS}`);
+      }
+
+      if (capped.length === 1) {
         logger.info(`Only 1 participant in round ${roundId}, automatic winner`);
-        await this.declareWinner(roundId, participants[0]);
+        await this.declareWinner(roundId, capped[0]);
         return;
       }
 
@@ -71,8 +79,8 @@ class BattleEngine {
         data: { status: 'SELECTING_WINNER' },
       });
 
-      // Select winner using randomness
-      const winner = await this.selectWinner(participants);
+      // Select winner using randomness (from capped list only)
+      const winner = await this.selectWinner(capped);
 
       // Update battle status to fighting
       await prisma.battle.update({
@@ -84,21 +92,20 @@ class BattleEngine {
         },
       });
 
-      // Emit fight started event — include full participant list so the
-      // frontend can sync fighters even if some live-purchase events were missed.
+      // Emit fight started event — capped list so frontend never renders >30 fighters
       if (this.io) {
         this.io.emit('fight-started', {
           roundId,
-          participantCount: participants.length,
+          participantCount: capped.length,
           duration: this.fightDuration,
-          participants: participants.map((p) => ({
+          participants: capped.map((p) => ({
             walletAddress: p.walletAddress,
             tokenAmount:   p.tokenAmount,
           })),
         });
       }
 
-      logger.info(`🥊 Fight animation started (${this.fightDuration}s)`);
+      logger.info(`🥊 Fight animation started — ${capped.length} fighters (${this.fightDuration}s)`);
 
       // Wait for fight animation to complete
       await this.delay(this.fightDuration * 1000);
@@ -163,22 +170,24 @@ class BattleEngine {
   }
 
   /**
-   * Declare winner and update leaderboard
+   * Declare winner and update leaderboard.
+   *
+   * Flow:
+   *   t+0s  — emit battle-result (winner popup appears on frontend)
+   *   t+3s  — emit participant-removed for every loser (arena clears)
+   *   t+7s  — wait for popup / celebration to finish
+   *   t+10s — advance to next round & auto-populate from queue
    */
   private async declareWinner(roundId: number, winner: any): Promise<void> {
     try {
-      // Update battle status to winner reveal
       const battle = await prisma.battle.update({
         where: { roundId },
-        data: {
-          status: 'WINNER_REVEAL',
-          completedAt: new Date(),
-        },
+        data: { status: 'WINNER_REVEAL', completedAt: new Date() },
       });
 
       logger.info(`🏆 Winner: ${winner.walletAddress} (Round ${roundId})`);
 
-      // Emit battle result
+      // 1. Announce winner to all clients
       if (this.io) {
         this.io.emit('battle-result', {
           roundId,
@@ -187,92 +196,50 @@ class BattleEngine {
         });
       }
 
-      // Update leaderboard
-      await this.updateLeaderboard(winner.walletAddress);
+      // 2. After 3 s, remove every loser from the arena so only the winner remains visible
+      await this.delay(3000);
+      const allParticipants = await battleEntryService.getParticipants(roundId);
+      const losers = allParticipants.filter((p) => p.walletAddress !== winner.walletAddress);
 
-      // Log round result (no-op in no-contract mode — reserved for future use)
-      logger.info(`📋 Round ${roundId} result logged (winner: ${winner.walletAddress})`);
+      if (this.io) {
+        losers.forEach((loser) => {
+          this.io!.emit('participant-removed', {
+            walletAddress: loser.walletAddress,
+            reason: 'round_ended',
+          });
+        });
+        logger.info(`🗑  Cleared ${losers.length} loser(s) from arena (round ${roundId})`);
+      }
 
+      // 3. Record win in DB + broadcast updated leaderboard to all clients
+      await leaderboardService.recordWin(winner.walletAddress, roundId);
 
-      // Mark battle as complete
+      logger.info(`📋 Round ${roundId} complete (winner: ${winner.walletAddress})`);
+
+      // 4. Mark battle as complete
       await prisma.battle.update({
         where: { roundId },
         data: { status: 'COMPLETE' },
       });
 
-      // Check if this was the final round
+      // 5. Check if this was the final round
       const totalRounds = parseInt(process.env.TOTAL_ROUNDS || '10', 10);
-      
+
       if (roundId >= totalRounds) {
         logger.info('🏁 Final round complete! Triggering reward distribution...');
+        // Clear any remaining queue since tournament is over
+        battleEntryService.clearQueue();
         await this.triggerRewardDistribution();
       } else {
-        // Advance to next round after 10 second break
-        logger.info(`⏳ Next round starts in 10 seconds...`);
-        await this.delay(10000);
+        // Wait for the winner popup / celebration to finish, then start the next round
+        logger.info(`⏳ Next round starts in 7 seconds...`);
+        await this.delay(7000);
         await this.advanceToNextRound(roundId);
       }
     } catch (error: any) {
       logger.error('Error declaring winner:', error);
       throw error;
     }
-  }
-
-  /**
-   * Update leaderboard with win
-   */
-  private async updateLeaderboard(walletAddress: string): Promise<void> {
-    try {
-      // Check if entry exists
-      const existing = await prisma.leaderboard.findUnique({
-        where: { walletAddress },
-      });
-
-      if (existing) {
-        // Increment wins
-        await prisma.leaderboard.update({
-          where: { walletAddress },
-          data: {
-            wins: existing.wins + 1,
-            lastWinAt: new Date(),
-          },
-        });
-      } else {
-        // Create new entry
-        await prisma.leaderboard.create({
-          data: {
-            walletAddress,
-            wins: 1,
-            lastWinAt: new Date(),
-          },
-        });
-      }
-
-      logger.info(`📊 Leaderboard updated for ${walletAddress}`);
-
-      // Broadcast updated leaderboard
-      await this.broadcastLeaderboard();
-    } catch (error: any) {
-      logger.error('Error updating leaderboard:', error);
-    }
-  }
-
-  /**
-   * Broadcast current leaderboard to all clients
-   */
-  private async broadcastLeaderboard(): Promise<void> {
-    if (!this.io) return;
-
-    const top10 = await prisma.leaderboard.findMany({
-      take: 10,
-      orderBy: [{ wins: 'desc' }, { lastWinAt: 'asc' }],
-      select: {
-        walletAddress: true,
-        wins: true,
-      },
-    });
-
-    this.io.emit('leaderboard-update', top10);
   }
 
   /**
@@ -295,9 +262,13 @@ class BattleEngine {
   }
 
   /**
-   * Advance to next round.
-   * Only calls advanceToNextRound() — the timer itself starts when the
-   * first participant of the new round buys a token (battle-entry.ts).
+   * Advance to next round and auto-populate from the waiting queue.
+   *
+   * If the queue has players:
+   *   - They are added to the new round immediately (triggering the timer).
+   *   - If 30 queue players fill the slots, the battle starts automatically.
+   * If the queue is empty:
+   *   - The timer starts when the first new live buy arrives.
    */
   private async advanceToNextRound(currentRound: number): Promise<void> {
     const totalRounds = parseInt(process.env.TOTAL_ROUNDS || '10', 10);
@@ -307,9 +278,16 @@ class BattleEngine {
       return;
     }
 
+    const nextRound = currentRound + 1;
     timerService.advanceToNextRound();
 
-    logger.info(`⏳ Round ${currentRound + 1} ready — waiting for first participant to buy`);
+    const queueSize = battleEntryService.getQueueCount();
+    if (queueSize > 0) {
+      logger.info(`📋 ${queueSize} player(s) in queue — auto-populating round ${nextRound}...`);
+      await battleEntryService.populateNextRound(nextRound);
+    } else {
+      logger.info(`⏳ Round ${nextRound} ready — waiting for first participant to buy`);
+    }
   }
 
   /**

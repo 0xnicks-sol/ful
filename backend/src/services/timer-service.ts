@@ -112,6 +112,19 @@ class TimerService extends EventEmitter {
   }
 
   /**
+   * Force-end the timer immediately (called when 30 participants are reached).
+   * Equivalent to the countdown hitting zero — triggers battle start right away.
+   */
+  public forceEnd(): void {
+    if (!this.timerActive || this.hasEnded) {
+      logger.warn('[TimerService] forceEnd called but timer is not active or already ended');
+      return;
+    }
+    logger.info(`⚡ [TimerService] Force-ending round ${this.currentRound} — 30 participants reached`);
+    this.endTimer();
+  }
+
+  /**
    * Stop the timer manually (admin function)
    */
   public stopTimer(): void {

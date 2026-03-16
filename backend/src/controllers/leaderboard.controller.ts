@@ -3,20 +3,32 @@ import leaderboardService from '../services/leaderboard-service';
 import logger from '../config/logger';
 
 /**
- * Get leaderboard rankings
  * GET /api/leaderboard
+ * Cumulative win totals — ordered by wins desc.
  */
 export async function getLeaderboard(req: Request, res: Response) {
   try {
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit    = parseInt(req.query.limit as string) || 10;
     const rankings = await leaderboardService.getTopRankings(limit);
-
-    res.json({
-      rankings,
-      timestamp: new Date().toISOString(),
-    });
+    res.json({ rankings, timestamp: new Date().toISOString() });
   } catch (error: any) {
     logger.error('Error getting leaderboard:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * GET /api/winners
+ * Per-round winners — one entry per completed round, ordered by round number.
+ * Each entry: { round, walletAddress, completedAt }
+ * This is the canonical "who won which round" record straight from the DB.
+ */
+export async function getRoundWinners(_req: Request, res: Response) {
+  try {
+    const winners = await leaderboardService.getRoundWinners();
+    res.json({ winners, total: winners.length, timestamp: new Date().toISOString() });
+  } catch (error: any) {
+    logger.error('Error getting round winners:', error);
     res.status(500).json({ error: error.message });
   }
 }

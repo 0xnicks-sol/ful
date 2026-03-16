@@ -83,9 +83,10 @@ export function LiveTicker({ events }: TickerProps) {
 
 interface LiveFeedPanelProps {
   events: FeedEvent[]
+  queueCount?: number
 }
 
-export function LiveFeedPanel({ events }: LiveFeedPanelProps) {
+export function LiveFeedPanel({ events, queueCount = 0 }: LiveFeedPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -113,8 +114,16 @@ export function LiveFeedPanel({ events }: LiveFeedPanelProps) {
         </span>
       </div>
 
-      <div className="flex-shrink-0">
+      <div className="flex items-center gap-3 flex-shrink-0">
         <span className="text-xs font-mono text-sand-dim">{events.length} events</span>
+        {queueCount > 0 && (
+          <span
+            className="text-xs font-mono px-2 py-0.5 rounded"
+            style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.3)" }}
+          >
+            ⏳ {queueCount} waiting
+          </span>
+        )}
       </div>
 
       <div

@@ -1,7 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import prisma from '../config/database';
 import logger from '../config/logger';
-import battleEntryService from './battle-entry';
+import battleEntryService, { MAX_FIGHTERS } from './battle-entry';
 import timerService from './timer-service';
 
 export interface TokenPurchaseData {
@@ -33,9 +33,14 @@ class LivePurchaseService {
    */
   public emitInstantBuy(walletAddress: string): void {
     if (!this.io) return;
-    const state   = timerService.getTimerState();
-    const canJoin = !timerService.isFightInProgress() &&
-      (timerService.isActive() || state.status === 'idle');
+    const state      = timerService.getTimerState();
+    const roundFull  = state.participantCount >= MAX_FIGHTERS;
+    const fightOn    = timerService.isFightInProgress();
+    // canJoin = entry window open AND round not yet at capacity
+    const canJoin    = !fightOn &&
+      (timerService.isActive() || state.status === 'idle') &&
+      !roundFull;
+    const queued     = !fightOn && roundFull; // round full → they'll queue
 
     this.io.emit('live-purchase', {
       buyer:      walletAddress,
@@ -43,10 +48,11 @@ class LivePurchaseService {
       amount:     0,          // real amount arrives with participant-joined
       timestamp:  new Date(),
       canJoin,
+      queued,
       optimistic: true,
     });
 
-    logger.info(`⚡ Instant emit live-purchase → ${walletAddress.slice(0, 8)}...`);
+    logger.info(`⚡ Instant emit live-purchase → ${walletAddress.slice(0, 8)}... (canJoin=${canJoin}, queued=${queued})`);
   }
 
   /**
@@ -69,10 +75,21 @@ class LivePurchaseService {
     try {
       logger.info(`📥 Purchase confirmed: ${data.walletAddress} | ${data.tokenAmount} tokens`);
 
-      // ── 1. Emit confirmed socket event (full wallet + real amount) ──────────
-      const state   = timerService.getTimerState();
-      const canJoin = !timerService.isFightInProgress() &&
-        (timerService.isActive() || state.status === 'idle');
+      // ── 1. Record battle participation (may queue if round is full) ─────────
+      const currentRound = timerService.getCurrentRound();
+      const joined = await battleEntryService.recordParticipation(
+        data.walletAddress,
+        data.txSignature,
+        data.tokenAmount,
+        currentRound,
+      );
+
+      // ── 2. Emit confirmed socket event (full wallet + real amount) ──────────
+      const state      = timerService.getTimerState();
+      const roundFull  = state.participantCount >= MAX_FIGHTERS;
+      const fightOn    = timerService.isFightInProgress();
+      const canJoin    = joined; // true only if they actually joined this round
+      const queued     = !joined && !fightOn; // queued for next round
 
       if (this.io) {
         this.io.emit('live-purchase', {
@@ -81,11 +98,18 @@ class LivePurchaseService {
           amount:     data.tokenAmount,
           timestamp:  data.timestamp,
           canJoin,
+          queued,
           optimistic: false,
         });
       }
 
-      // ── 2. DB write in background (never block the socket path) ─────────────
+      if (joined) {
+        logger.info(`✅ Auto-joined battle: ${data.walletAddress.slice(0, 8)}...`);
+      } else if (queued) {
+        logger.info(`⏳ Queued for next round: ${data.walletAddress.slice(0, 8)}...`);
+      }
+
+      // ── 3. DB write in background (never block the socket path) ─────────────
       prisma.tokenTransaction.create({
         data: {
           walletAddress: data.walletAddress,
@@ -99,18 +123,8 @@ class LivePurchaseService {
         logger.warn(`[DB] tokenTransaction create failed: ${err.message}`)
       );
 
-      // ── 3. Record battle participation ──────────────────────────────────────
-      const currentRound = timerService.getCurrentRound();
-      const joined = await battleEntryService.recordParticipation(
-        data.walletAddress,
-        data.txSignature,
-        data.tokenAmount,
-        currentRound,
-      );
-
-      if (joined) {
-        logger.info(`✅ Auto-joined battle: ${data.walletAddress}`);
-      }
+      // suppress unused variable warning
+      void roundFull;
     } catch (error: any) {
       logger.error('Error handling purchase:', error);
     }

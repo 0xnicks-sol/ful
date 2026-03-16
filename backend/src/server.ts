@@ -22,6 +22,7 @@ import {
   getLeaderboard,
   getWalletRank,
   getTop3Winners,
+  getRoundWinners,
 } from './controllers/leaderboard.controller';
 
 // Load environment variables
@@ -30,10 +31,18 @@ dotenv.config();
 const app: Express = express();
 const httpServer = createServer(app);
 
+// Support multiple CORS origins (comma-separated in env)
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const corsOrigin = allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins;
+
 // Socket.IO configuration
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: corsOrigin,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -43,7 +52,7 @@ const io = new SocketIOServer(httpServer, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: corsOrigin,
   credentials: true,
 }));
 app.use(express.json());
@@ -66,9 +75,12 @@ app.get('/api/battles/stats', getBattleStats);
 app.get('/api/battles/:roundId', getBattleByRound);
 
 // Leaderboard routes
-app.get('/api/leaderboard', getLeaderboard);
-app.get('/api/leaderboard/top3', getTop3Winners);
+app.get('/api/leaderboard',           getLeaderboard);
+app.get('/api/leaderboard/top3',      getTop3Winners);
 app.get('/api/leaderboard/:walletAddress', getWalletRank);
+
+// Per-round winner history (one entry per completed round)
+app.get('/api/winners', getRoundWinners);
 
 // ── Helius webhook (pump.fun buy/sell auto-detected from on-chain events)
 // Set this URL in your Helius dashboard: https://your-backend.com/api/webhooks/helius

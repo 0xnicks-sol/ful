@@ -136,6 +136,7 @@ export default function Home() {
     totalRoundsCompleted,
     tournamentComplete,
     autoStartLottery,
+    queueCount,
     handleLotteryComplete,
     handleWinnerClose,
     isLotteryEligible,
@@ -308,7 +309,7 @@ export default function Home() {
 
             {/* Right sidebar: Live feed */}
             <aside className="flex flex-col gap-3 xl:w-72 flex-shrink-0">
-              <LiveFeedPanel events={feedEvents} />
+              <LiveFeedPanel events={feedEvents} queueCount={queueCount} />
 
               {/* Rules card */}
               <div

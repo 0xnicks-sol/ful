@@ -5,23 +5,23 @@ import "./globals.css";
 const inter = JetBrains_Mono({ subsets: ["latin"], variable: '--font-sans' });
 const mono  = JetBrains_Mono({ subsets: ["latin"], variable: '--font-mono' });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://clawbattle.live";
+
 export const metadata: Metadata = {
-  title: "ClawBattle — pump.fun Battle Grounds",
-  description:
-    "Buy the CLAW token on pump.fun and watch your fighter battle in real-time. 10 rounds, 1 winner each round, 3 random grand prize winners.",
-  keywords: ["ClawBattle", "pump.fun", "solana", "battle arena", "crypto game", "CLAW token"],
-  authors: [{ name: "ClawBattle" }],
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://clawbattle.fun"
-  ),
+  title:       "ClawBattle — pump.fun Battle Grounds",
+  description: "Buy the CLAW token on pump.fun and watch your fighter battle in real-time. 10 rounds, 1 winner each round, 3 random grand prize winners.",
+  keywords:    ["ClawBattle", "pump.fun", "solana", "battle arena", "crypto game", "CLAW token"],
+  authors:     [{ name: "ClawBattle" }],
+  metadataBase: new URL(siteUrl),
+
   openGraph: {
     title:       "ClawBattle — pump.fun Battle Grounds",
     description: "Buy CLAW, enter the arena, fight for glory. 10 rounds · 3 grand winners · Live on Solana.",
-    url:         process.env.NEXT_PUBLIC_SITE_URL || "https://clawbattle.fun",
+    url:         siteUrl,
     siteName:    "ClawBattle",
     images: [
       {
-        url:    "/logoooooo-modified.png",
+        url:    `${siteUrl}/logoooooo-modified.png`,
         width:  800,
         height: 800,
         alt:    "ClawBattle Logo",
@@ -30,18 +30,25 @@ export const metadata: Metadata = {
     locale: "en_US",
     type:   "website",
   },
+
   twitter: {
     card:        "summary_large_image",
     title:       "ClawBattle — pump.fun Battle Grounds",
     description: "Buy CLAW, enter the arena, fight for glory. Live on Solana.",
     site:        "@ClawBattleAI",
     creator:     "@ClawBattleAI",
-    images:      ["/logoooooo-modified.png"],
+    images:      [`${siteUrl}/logoooooo-modified.png`],
   },
+
+  // Next.js App Router picks up icon.png and apple-icon.png from src/app/ automatically.
+  // These entries are explicit fallbacks for older clients.
   icons: {
-    icon:      "/logoooooo-modified.png",
-    shortcut:  "/logoooooo-modified.png",
-    apple:     "/logoooooo-modified.png",
+    icon:      [
+      { url: "/icon.png",               type: "image/png" },
+      { url: "/logoooooo-modified.png", type: "image/png" },
+    ],
+    shortcut:  "/icon.png",
+    apple:     "/apple-icon.png",
   },
 };
 

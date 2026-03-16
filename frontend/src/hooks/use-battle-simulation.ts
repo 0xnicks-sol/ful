@@ -87,6 +87,7 @@ export function useBattleSimulation() {
   const [totalRoundsCompleted,setTotalRoundsCompleted]= useState(0)
   const [tournamentComplete,  setTournamentComplete]  = useState(false)
   const [autoStartLottery,    setAutoStartLottery]    = useState(false)
+  const [queueCount,          setQueueCount]          = useState(0)
 
   const battleIntervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const celebrationTimer   = useRef<ReturnType<typeof setTimeout>  | null>(null)
@@ -96,6 +97,12 @@ export function useBattleSimulation() {
   roundRef.current = round
 
   // ── Local fight animation (visual only — backend decides the real winner) ─
+  //
+  // Damage is tuned so that with 30 fighters at ~100 HP, the field clears to
+  // ~1-3 survivors naturally over 45 seconds (the server's fight duration).
+  // Fighters actually die visually (no HP floor), so the conclusion looks real.
+  // When `battle-result` arrives the server-authoritative winner is crowned —
+  // if they were visually eliminated they get a comeback victory.
   const startLocalFightAnimation = useCallback(() => {
     fightActiveRef.current = true
     if (battleIntervalRef.current) clearInterval(battleIntervalRef.current)
@@ -111,15 +118,19 @@ export function useBattleSimulation() {
         if (victims.length === 0) return prev
         const victim = victims[Math.floor(Math.random() * victims.length)]
 
-        const baseDamage    = Math.floor(attacker.maxHp * 0.06) + Math.floor(Math.random() * 10) + 5
-        const newHp         = Math.max(1, victim.hp - baseDamage)   // floor at 1 — backend declares true death
-        const willFlinch    = newHp < victim.hp * 0.4               // show big flinch at low hp
+        // ~30-35% of maxHp per hit → fighter dies in ~3 hits
+        // At 600 ms interval with 30 fighters that yields ~1 death every 1.5 s,
+        // clearing the field in ≈ 44 s — matching the 45 s server timer.
+        const baseDamage = Math.floor(attacker.maxHp * 0.30) + Math.floor(Math.random() * 12) + 5
+        const newHp      = Math.max(0, victim.hp - baseDamage)
+        const isDead     = newHp <= 0
 
-        const lungePos  = getLungePosition(attacker.basePosition, victim.basePosition, 0.65)
+        const lungePos   = getLungePosition(attacker.basePosition, victim.basePosition, 0.65)
         const facesRight = victim.basePosition.x >= attacker.basePosition.x
 
-        // Feed event on big hits
-        if (willFlinch && Math.random() < 0.3) {
+        if (isDead) {
+          pushFeedEvent(setFeedEvents, "eliminate", victim.walletAddress)
+        } else if (newHp < victim.maxHp * 0.35 && Math.random() < 0.25) {
           pushFeedEvent(setFeedEvents, "eliminate", victim.walletAddress)
         }
 
@@ -127,11 +138,19 @@ export function useBattleSimulation() {
           if (f.id === attacker.id)
             return { ...f, state: "attack", position: lungePos, flipped: facesRight, animKey: (f.animKey ?? 0) + 1 }
           if (f.id === victim.id)
-            return { ...f, state: "hit", hp: newHp, position: f.basePosition, flipped: !facesRight, animKey: (f.animKey ?? 0) + 1 }
+            return {
+              ...f,
+              state:        isDead ? "dead" : "hit",
+              hp:           newHp,
+              isEliminated: isDead,
+              position:     f.basePosition,
+              flipped:      !facesRight,
+              animKey:      (f.animKey ?? 0) + 1,
+            }
           return { ...f, state: "idle", position: f.basePosition }
         })
 
-        // Snap attacker back after lunge
+        // Snap attacker back to base after lunge
         setTimeout(() => {
           setFighters((curr) =>
             curr.map((f) =>
@@ -140,11 +159,12 @@ export function useBattleSimulation() {
                 : f
             )
           )
-        }, 500)
+        }, 400)
 
-        return updated
+        // Rebuild positions so survivors spread out as fighters fall
+        return rebuildPositions(updated)
       })
-    }, 1200)
+    }, 600)
   }, [])
 
   // ── Socket setup ──────────────────────────────────────────────────────────
@@ -173,6 +193,7 @@ export function useBattleSimulation() {
         setWinnerId(undefined)
         setWinnerWallet(undefined)
         setShowWinnerPopup(false)
+        setQueueCount(0)
       }
     })
 
@@ -211,9 +232,10 @@ export function useBattleSimulation() {
     })
 
     // ── live-purchase (optimistic spawn — show instantly) ─────────────────────
-    s.on("live-purchase", (data: { buyer: string; buyerShort?: string; amount: number; canJoin: boolean; timestamp: string }) => {
+    s.on("live-purchase", (data: { buyer: string; buyerShort?: string; amount: number; canJoin: boolean; queued?: boolean; timestamp: string }) => {
       // Always add to feed for instant visibility
-      pushFeedEvent(setFeedEvents, "join", data.buyer)
+      const feedMsg = data.queued ? "Queued — next round" : undefined
+      pushFeedEvent(setFeedEvents, "join", data.buyer, feedMsg)
 
       if (!data.canJoin) return
 
@@ -246,13 +268,21 @@ export function useBattleSimulation() {
       })
     })
 
-    // ── participant-removed (token sell) ───────────────────────────────────
-    s.on("participant-removed", (data: { walletAddress: string }) => {
+    // ── participant-removed (token sell OR round ended) ────────────────────
+    s.on("participant-removed", (data: { walletAddress: string; reason?: string }) => {
       setFighters((prev) => {
         const filtered = prev.filter((f) => f.walletAddress !== data.walletAddress)
         return rebuildPositions(filtered)
       })
-      pushFeedEvent(setFeedEvents, "sell", data.walletAddress)
+      if (data.reason !== "round_ended") {
+        pushFeedEvent(setFeedEvents, "sell", data.walletAddress)
+      }
+    })
+
+    // ── participant-queued (round full — waiting for next round) ───────────
+    s.on("participant-queued", (data: { walletAddress: string; position: number; queueLength: number }) => {
+      setQueueCount(data.queueLength)
+      pushFeedEvent(setFeedEvents, "join", data.walletAddress, `Queued #${data.position} — next round`)
     })
 
     // ── fight-started ──────────────────────────────────────────────────────
@@ -314,19 +344,32 @@ export function useBattleSimulation() {
         battleIntervalRef.current = null
       }
 
-      // Mark real winner, eliminate everyone else
+      // Crown the server-authoritative winner.
+      // If the local animation had already visually eliminated them (comeback!),
+      // their HP is restored and they're marked alive again.
       setFighters((prev) => {
         const winnerFighter = prev.find((f) => f.walletAddress === data.winner)
-        if (winnerFighter) {
-          setWinnerId(winnerFighter.id)
-        }
-        return prev.map((f) => ({
-          ...f,
-          state:       (f.walletAddress === data.winner ? "victory" : "dead") as Fighter["state"],
-          hp:           f.walletAddress === data.winner ? f.maxHp : 0,
-          isEliminated: f.walletAddress !== data.winner,
-          position:     f.basePosition,
-        }))
+        if (winnerFighter) setWinnerId(winnerFighter.id)
+
+        return prev.map((f) => {
+          if (f.walletAddress === data.winner) {
+            return {
+              ...f,
+              state:        "victory" as const,
+              hp:           f.maxHp,          // restore HP (comeback case)
+              isEliminated: false,
+              position:     f.basePosition,
+              animKey:      (f.animKey ?? 0) + 1,
+            }
+          }
+          return {
+            ...f,
+            state:        "dead" as const,
+            hp:           0,
+            isEliminated: true,
+            position:     f.basePosition,
+          }
+        })
       })
 
       setWinnerWallet(data.winner)
@@ -367,15 +410,15 @@ export function useBattleSimulation() {
       },
     )
 
-    // ── Fetch initial leaderboard via REST ────────────────────────────────
-    fetch(`${SOCKET_URL}/api/leaderboard`)
+    // ── Fetch initial leaderboard via REST (cumulative wins) ─────────────
+    fetch(`${SOCKET_URL}/api/leaderboard?limit=20`)
       .then((r) => r.json())
       .then((data) => {
         const rankings = data?.rankings ?? data?.leaderboard ?? []
         if (Array.isArray(rankings) && rankings.length > 0) {
           setLeaderboard(
-            rankings.map((e: { walletAddress: string; wins: number }, i: number) => ({
-              rank:              i + 1,
+            rankings.map((e: { rank?: number; walletAddress: string; wins: number }, i: number) => ({
+              rank:              e.rank ?? i + 1,
               walletAddress:     e.walletAddress,
               roundsWon:         e.wins ?? 0,
               totalEliminations: 0,
@@ -384,6 +427,30 @@ export function useBattleSimulation() {
         }
       })
       .catch(() => {/* leaderboard is optional on load */})
+
+    // ── Fetch per-round winner history via REST ───────────────────────────
+    fetch(`${SOCKET_URL}/api/winners`)
+      .then((r) => r.json())
+      .then((data) => {
+        const winners: Array<{ round: number; walletAddress: string }> = data?.winners ?? []
+        if (winners.length > 0) {
+          // Merge into leaderboard: each unique wallet address shows as 1+ rounds won
+          setLeaderboard((prev) => {
+            if (prev.length > 0) return prev   // REST leaderboard already loaded
+            const seen = new Map<string, number>()
+            winners.forEach((w) => {
+              seen.set(w.walletAddress, (seen.get(w.walletAddress) ?? 0) + 1)
+            })
+            return Array.from(seen.entries()).map(([addr, wins], i) => ({
+              rank:              i + 1,
+              walletAddress:     addr,
+              roundsWon:         wins,
+              totalEliminations: 0,
+            }))
+          })
+        }
+      })
+      .catch(() => {})
 
     return () => {
       s.disconnect()
@@ -417,6 +484,7 @@ export function useBattleSimulation() {
     totalRoundsCompleted,
     tournamentComplete,
     autoStartLottery,
+    queueCount,
     handleLotteryComplete,
     handleWinnerClose,
     isLotteryEligible: totalRoundsCompleted >= 10,
