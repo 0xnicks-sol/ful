@@ -313,21 +313,34 @@ class BattleEngine {
   }
 
   /**
-   * Trigger reward distribution (final round complete)
-   * Calls the on-chain Anchor program to send SOL to top 3 winners.
+   * Trigger reward distribution (final round complete).
+   *
+   * Algorithm:
+   *   1. Collect ALL wallets that have won at least one round.
+   *   2. Fisher-Yates shuffle the entire list (true randomness).
+   *   3. Pick the first 3 — these are the grand prize winners.
+   *
+   * This gives every round-winner an equal chance regardless of
+   * how many rounds they won.
    */
   private async triggerRewardDistribution(): Promise<void> {
     try {
-      // Get top 3 winners from leaderboard
-      const top3 = await prisma.leaderboard.findMany({
-        take: 3,
-        orderBy: [{ wins: 'desc' }, { lastWinAt: 'asc' }],
+      // Fetch every wallet that has won at least one round
+      const allWinners = await prisma.leaderboard.findMany({
         select: { walletAddress: true, wins: true },
       });
 
-      logger.info(`💰 Top ${top3.length} winners for reward distribution:`);
+      // Fisher-Yates shuffle for fair random selection
+      for (let i = allWinners.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allWinners[i], allWinners[j]] = [allWinners[j], allWinners[i]];
+      }
+
+      const top3 = allWinners.slice(0, 3);
+
+      logger.info(`🎰 10-round tournament complete! Shuffled ${allWinners.length} winners → selected 3:`);
       top3.forEach((w, i) =>
-        logger.info(`  ${i + 1}. ${w.walletAddress} — ${w.wins} wins`),
+        logger.info(`  ${i + 1}. ${w.walletAddress} (${w.wins} round win${w.wins > 1 ? 's' : ''})`),
       );
 
       // Emit tournament complete event to all connected clients
