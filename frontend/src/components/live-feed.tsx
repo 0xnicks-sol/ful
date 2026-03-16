@@ -268,6 +268,16 @@ export function TokenInfoBar({
           X / Twitter
           <ExternalLink className="w-3 h-3" />
         </a>
+        <a
+          href="https://t.me/ClawBattleAI"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 hover:opacity-90"
+          style={{ background: "rgba(41,182,246,0.08)", border: "1px solid rgba(41,182,246,0.25)", color: "#29b6f6" }}
+        >
+          Telegram
+          <ExternalLink className="w-3 h-3" />
+        </a>
       </div>
     </div>
   )

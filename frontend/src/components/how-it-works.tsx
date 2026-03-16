@@ -8,15 +8,15 @@ const STEPS = [
     icon: ShoppingCart,
     title: "Buy The Token",
     description:
-      "Purchase our token on pump.fun. Each buy automatically generates your unique Gladiator and enters you into the next battle.",
+      "Purchase the CLAW token on pump.fun. Each buy automatically spawns your fighter and enters you into the next ClawBattle round.",
     color: "#c9a227",
   },
   {
     number: "02",
     icon: Clock,
-    title: "30s Lobby",
+    title: "60s Lobby",
     description:
-      "Up to 30 fighters can join each round. A 30-second countdown gives everyone time to enter before battle begins.",
+      "Up to 30 fighters can join each round. A 60-second countdown (starts on first buy) gives everyone time to enter before battle begins.",
     color: "#4a9eff",
   },
   {
@@ -24,7 +24,7 @@ const STEPS = [
     icon: Sword,
     title: "Battle Begins",
     description:
-      "Fighters clash in the arena. Hold your tokens to stay in — sell at any time and your Gladiator is instantly removed.",
+      "Fighters clash in the arena. Hold your tokens to stay in — sell at any time and your fighter is instantly removed from the battle.",
     color: "#cc1111",
   },
   {
@@ -32,7 +32,7 @@ const STEPS = [
     icon: Trophy,
     title: "Last One Standing",
     description:
-      "The final Gladiator standing wins the round and earns a spot on the leaderboard. 10-15 rounds are played per session.",
+      "The last fighter standing wins the round and earns a spot on the leaderboard. Exactly 10 rounds are played per ClawBattle tournament.",
     color: "#22c55e",
   },
   {
@@ -40,7 +40,7 @@ const STEPS = [
     icon: Shuffle,
     title: "Grand Lottery",
     description:
-      "After all rounds, a random lottery shuffle picks 3 grand winners from all round winners on the leaderboard.",
+      "After all 10 rounds, ClawBattle automatically shuffles all round winners and randomly selects 3 grand prize winners.",
     color: "#bf7fff",
   },
   {
@@ -66,10 +66,10 @@ export function HowItWorks() {
             textShadow: "0 0 30px rgba(201,162,39,0.4)",
           }}
         >
-          How It Works
+          How ClawBattle Works
         </h2>
         <p className="text-sand-dim font-mono text-sm max-w-lg mx-auto leading-relaxed">
-          A fully automated gladiatorial battle system. Buy. Fight. Win. It&apos;s that simple.
+          10 rounds of fully automated battle. Buy the token, fight for your round, win the lottery. That simple.
         </p>
         <div className="flex items-center justify-center gap-3 mt-4">
           <div className="h-px w-16" style={{ background: "rgba(201,162,39,0.3)" }} />
@@ -132,7 +132,7 @@ export function HowItWorks() {
           </span>
         </div>
         <p className="text-xs text-sand-dim font-mono leading-relaxed mb-4">
-          Your gladiator{"'"}s HP and battle strength are directly tied to how many tokens you hold.
+          Your fighter{"'"}s HP and battle strength are directly tied to how many CLAW tokens you hold.
           Larger holders deal more damage per hit and survive longer in the arena.
           This is not shown publicly — it is your hidden edge.
         </p>
@@ -173,7 +173,7 @@ export function HowItWorks() {
         </div>
         <p className="text-xs text-sand-dim font-mono leading-relaxed mb-3">
           50% of all pump.fun creator rewards are split equally among the 3 grand lottery winners each session.
-          Payments are sent manually and announced publicly on X (Twitter).
+          Payments are sent manually and announced publicly on <a href="https://x.com/ClawBattleAI" target="_blank" rel="noopener noreferrer" style={{color:"#c9a227"}}>@ClawBattleAI</a> and <a href="https://t.me/ClawBattleAI" target="_blank" rel="noopener noreferrer" style={{color:"#29b6f6"}}>Telegram</a>.
         </p>
         <div className="flex items-center justify-center gap-6 flex-wrap">
           {[

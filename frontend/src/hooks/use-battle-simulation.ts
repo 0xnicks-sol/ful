@@ -85,6 +85,8 @@ export function useBattleSimulation() {
   const [winnerWallet,        setWinnerWallet]        = useState<string | undefined>()
   const [showWinnerPopup,     setShowWinnerPopup]     = useState(false)
   const [totalRoundsCompleted,setTotalRoundsCompleted]= useState(0)
+  const [tournamentComplete,  setTournamentComplete]  = useState(false)
+  const [autoStartLottery,    setAutoStartLottery]    = useState(false)
 
   const battleIntervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const celebrationTimer   = useRef<ReturnType<typeof setTimeout>  | null>(null)
@@ -351,6 +353,20 @@ export function useBattleSimulation() {
       setLeaderboard(mapped)
     })
 
+    // ── tournament-complete (all 10 rounds done) ──────────────────────────
+    // Backend has shuffled all round-winners and picked 3 at random.
+    // Auto-show the lottery reveal on the frontend.
+    s.on(
+      "tournament-complete",
+      (data: { winners: Array<{ walletAddress: string; wins: number }> }) => {
+        const wallets = data.winners.map((w) => w.walletAddress)
+        setGrandWinners(wallets)
+        setTournamentComplete(true)
+        setAutoStartLottery(true)
+        pushFeedEvent(setFeedEvents, "win", "tournament", "TOURNAMENT COMPLETE — 3 Grand Winners Selected!")
+      },
+    )
+
     // ── Fetch initial leaderboard via REST ────────────────────────────────
     fetch(`${SOCKET_URL}/api/leaderboard`)
       .then((r) => r.json())
@@ -379,6 +395,7 @@ export function useBattleSimulation() {
 
   const handleLotteryComplete = useCallback((winners: string[]) => {
     setGrandWinners(winners)
+    setAutoStartLottery(false)
     winners.forEach((w) => pushFeedEvent(setFeedEvents, "win", w, "Grand Winner"))
   }, [])
 
@@ -398,6 +415,8 @@ export function useBattleSimulation() {
     winnerWallet,
     showWinnerPopup,
     totalRoundsCompleted,
+    tournamentComplete,
+    autoStartLottery,
     handleLotteryComplete,
     handleWinnerClose,
     isLotteryEligible: totalRoundsCompleted >= 10,
