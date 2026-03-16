@@ -1,4 +1,3 @@
-import { Connection } from '@solana/web3.js';
 import { Server as SocketIOServer } from 'socket.io';
 import prisma from '../config/database';
 import logger from '../config/logger';
@@ -21,213 +20,149 @@ export interface TokenSellData {
 
 class LivePurchaseService {
   private io: SocketIOServer | null = null;
-  private connection: Connection;
 
-  constructor() {
-    this.connection = new Connection(
-      process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
-      'confirmed'
-    );
-  }
-
-  /**
-   * Initialize with Socket.IO instance
-   */
   public initialize(io: SocketIOServer): void {
     this.io = io;
     logger.info('LivePurchaseService initialized');
   }
 
   /**
-   * Handle token purchase webhook
+   * Phase-1 instant emit: called by trade-listener immediately after
+   * getting the signer from the raw (non-parsed) transaction.
+   * No DB write, no verification — just push the socket event NOW.
+   */
+  public emitInstantBuy(walletAddress: string): void {
+    if (!this.io) return;
+    const state   = timerService.getTimerState();
+    const canJoin = !timerService.isFightInProgress() &&
+      (timerService.isActive() || state.status === 'idle');
+
+    this.io.emit('live-purchase', {
+      buyer:      walletAddress,
+      buyerShort: this.truncateAddress(walletAddress),
+      amount:     0,          // real amount arrives with participant-joined
+      timestamp:  new Date(),
+      canJoin,
+      optimistic: true,
+    });
+
+    logger.info(`⚡ Instant emit live-purchase → ${walletAddress.slice(0, 8)}...`);
+  }
+
+  /**
+   * Phase-1 instant emit for sells: removes fighter from arena immediately.
+   */
+  public emitInstantSell(walletAddress: string): void {
+    if (!this.io) return;
+    this.io.emit('participant-removed', {
+      walletAddress,
+      reason: 'token_sold',
+    });
+    logger.info(`⚡ Instant emit participant-removed → ${walletAddress.slice(0, 8)}...`);
+  }
+
+  /**
+   * Phase-2 full purchase handler: called after getParsedTransaction succeeds.
+   * Emits confirmed live-purchase (with real token amount) + records in DB + joins battle.
    */
   async handlePurchase(data: TokenPurchaseData): Promise<void> {
     try {
-      logger.info(`📥 Token purchase received: ${data.walletAddress}`);
+      logger.info(`📥 Purchase confirmed: ${data.walletAddress} | ${data.tokenAmount} tokens`);
 
-      // Verify transaction on Solana blockchain
-      const isValid = await this.verifyPurchaseTransaction(
-        data.txSignature,
-        data.walletAddress
-      );
+      // ── 1. Emit confirmed socket event (full wallet + real amount) ──────────
+      const state   = timerService.getTimerState();
+      const canJoin = !timerService.isFightInProgress() &&
+        (timerService.isActive() || state.status === 'idle');
 
-      if (!isValid) {
-        logger.error(`Invalid purchase transaction: ${data.txSignature}`);
-        return;
-      }
-
-      // Log transaction
-      await prisma.tokenTransaction.create({
-        data: {
-          walletAddress: data.walletAddress,
-          txSignature: data.txSignature,
-          type: 'PURCHASE',
-          tokenAmount: data.tokenAmount,
-          timestamp: data.timestamp,
-          processed: true,
-        },
-      });
-
-      // Broadcast live purchase to all clients
       if (this.io) {
         this.io.emit('live-purchase', {
-          buyer: this.truncateAddress(data.walletAddress),
-          amount: data.tokenAmount,
-          timestamp: data.timestamp,
+          buyer:      data.walletAddress,
+          buyerShort: this.truncateAddress(data.walletAddress),
+          amount:     data.tokenAmount,
+          timestamp:  data.timestamp,
+          canJoin,
+          optimistic: false,
         });
       }
 
-      // Auto-join battle if timer is active
-      if (timerService.isActive()) {
-        const currentRound = timerService.getCurrentRound();
-        const joined = await battleEntryService.recordParticipation(
-          data.walletAddress,
-          data.txSignature,
-          data.tokenAmount,
-          currentRound
-        );
+      // ── 2. DB write in background (never block the socket path) ─────────────
+      prisma.tokenTransaction.create({
+        data: {
+          walletAddress: data.walletAddress,
+          txSignature:   data.txSignature,
+          type:          'PURCHASE',
+          tokenAmount:   data.tokenAmount,
+          timestamp:     data.timestamp,
+          processed:     true,
+        },
+      }).catch((err: any) =>
+        logger.warn(`[DB] tokenTransaction create failed: ${err.message}`)
+      );
 
-        if (joined) {
-          logger.info(`✅ Auto-joined battle: ${data.walletAddress}`);
-        }
-      } else {
-        logger.info(`⏸️  Purchase recorded but battle window closed`);
+      // ── 3. Record battle participation ──────────────────────────────────────
+      const currentRound = timerService.getCurrentRound();
+      const joined = await battleEntryService.recordParticipation(
+        data.walletAddress,
+        data.txSignature,
+        data.tokenAmount,
+        currentRound,
+      );
+
+      if (joined) {
+        logger.info(`✅ Auto-joined battle: ${data.walletAddress}`);
       }
     } catch (error: any) {
       logger.error('Error handling purchase:', error);
-      throw error;
     }
   }
 
   /**
-   * Handle token sell webhook
+   * Phase-2 full sell handler: called after getParsedTransaction succeeds.
+   * Instant socket emit already fired by emitInstantSell — this just does cleanup.
    */
   async handleSell(data: TokenSellData): Promise<void> {
     try {
-      logger.warn(`📤 Token sell detected: ${data.walletAddress}`);
+      logger.warn(`📤 Sell confirmed: ${data.walletAddress}`);
 
-      // Verify sell transaction on Solana
-      const isValid = await this.verifySellTransaction(
-        data.txSignature,
-        data.walletAddress
-      );
-
-      if (!isValid) {
-        logger.error(`Invalid sell transaction: ${data.txSignature}`);
-        return;
+      // ── 1. Emit participant-removed again (idempotent on frontend) ───────────
+      if (this.io) {
+        this.io.emit('participant-removed', {
+          walletAddress: data.walletAddress,
+          reason: 'token_sold',
+        });
       }
 
-      // Log transaction
-      await prisma.tokenTransaction.create({
+      // ── 2. Remove from active battle ─────────────────────────────────────────
+      battleEntryService.removeParticipant(data.walletAddress).catch(() => {});
+
+      // ── 3. Background DB writes ───────────────────────────────────────────────
+      prisma.tokenTransaction.create({
         data: {
           walletAddress: data.walletAddress,
-          txSignature: data.txSignature,
-          type: 'SELL',
-          tokenAmount: data.tokenAmount,
-          timestamp: data.timestamp,
-          processed: true,
+          txSignature:   data.txSignature,
+          type:          'SELL',
+          tokenAmount:   data.tokenAmount,
+          timestamp:     data.timestamp,
+          processed:     true,
         },
-      });
+      }).catch((err: any) =>
+        logger.warn(`[DB] tokenTransaction create failed: ${err.message}`)
+      );
 
-      // Find all active characters owned by wallet
-      const characters = await prisma.character.findMany({
-        where: {
-          walletAddress: data.walletAddress,
-          isActive: true,
-        },
-      });
+      prisma.character.updateMany({
+        where: { walletAddress: data.walletAddress, isActive: true },
+        data:  { destroyedAt: new Date(), isActive: false },
+      }).catch(() => {});
 
-      if (characters.length > 0) {
-        // Destroy all characters
-        await prisma.character.updateMany({
-          where: {
-            walletAddress: data.walletAddress,
-            isActive: true,
-          },
-          data: {
-            destroyedAt: new Date(),
-            isActive: false,
-          },
-        });
-
-        logger.warn(`🔥 Destroyed ${characters.length} characters for ${data.walletAddress}`);
-
-        // Broadcast character destruction
-        if (this.io) {
-          this.io.emit('character-destroyed', {
-            walletAddress: this.truncateAddress(data.walletAddress),
-            characterCount: characters.length,
-          });
-        }
-      }
-
-      // Remove from active battle
-      await battleEntryService.removeParticipant(data.walletAddress);
     } catch (error: any) {
       logger.error('Error handling sell:', error);
-      throw error;
     }
   }
 
-  /**
-   * Verify token purchase transaction on Solana
-   */
-  private async verifyPurchaseTransaction(
-    txSignature: string,
-    expectedBuyer: string
-  ): Promise<boolean> {
-    try {
-      const tx = await this.connection.getTransaction(txSignature, {
-        maxSupportedTransactionVersion: 0,
-      });
-
-      if (!tx) {
-        logger.error(`Transaction not found: ${txSignature}`);
-        return false;
-      }
-
-      // Verify transaction is confirmed
-      if (!tx.meta || tx.meta.err) {
-        logger.error(`Transaction failed or not confirmed: ${txSignature}`);
-        return false;
-      }
-
-      // Verify signer matches expected buyer
-      const signer = tx.transaction.message.getAccountKeys().get(0);
-      if (!signer || signer.toBase58() !== expectedBuyer) {
-        logger.error(`Signer mismatch: expected ${expectedBuyer}, got ${signer?.toBase58()}`);
-        return false;
-      }
-
-      logger.info(`✅ Transaction verified: ${txSignature}`);
-      return true;
-    } catch (error: any) {
-      logger.error(`Error verifying transaction ${txSignature}:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Verify token sell transaction on Solana
-   */
-  private async verifySellTransaction(
-    txSignature: string,
-    expectedSeller: string
-  ): Promise<boolean> {
-    // Same verification logic as purchase
-    return this.verifyPurchaseTransaction(txSignature, expectedSeller);
-  }
-
-  /**
-   * Truncate wallet address for display
-   */
   private truncateAddress(address: string): string {
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   }
 
-  /**
-   * Check if transaction already processed
-   */
   async isTransactionProcessed(txSignature: string): Promise<boolean> {
     const existing = await prisma.tokenTransaction.findUnique({
       where: { txSignature },
@@ -236,6 +171,5 @@ class LivePurchaseService {
   }
 }
 
-// Export singleton instance
 export const livePurchaseService = new LivePurchaseService();
 export default livePurchaseService;

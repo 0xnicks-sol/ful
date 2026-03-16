@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
@@ -9,6 +9,7 @@ import battleEntryService from './services/battle-entry';
 import livePurchaseService from './services/live-purchases';
 import battleEngine from './services/battle-engine';
 import leaderboardService from './services/leaderboard-service';
+import tradeListener from './services/trade-listener';
 import { handleTokenPurchase, handleTokenSell } from './controllers/webhook.controller';
 import { handleHeliusWebhook } from './controllers/helius.controller';
 import {
@@ -49,12 +50,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // API routes
-app.get('/api/timer/state', (_req, res) => {
+app.get('/api/timer/state', (_req: Request, res: Response) => {
   res.json(timerService.getTimerState());
 });
 
@@ -78,19 +79,19 @@ app.post('/api/webhooks/token-purchase', handleTokenPurchase);
 app.post('/api/webhooks/token-sell', handleTokenSell);
 
 // Admin routes
-app.post('/api/admin/start-round', (req, res): void => {
+app.post('/api/admin/start-round', (req: Request, res: Response): void => {
   const { roundId } = req.body;
-  
+
   if (timerService.isActive()) {
     res.status(400).json({ error: 'Timer already active' });
     return;
   }
-  
+
   timerService.startTimer(roundId);
   res.json({ success: true, round: timerService.getCurrentRound() });
 });
 
-app.post('/api/admin/reset-tournament', async (_req, res) => {
+app.post('/api/admin/reset-tournament', async (_req: Request, res: Response) => {
   try {
     await leaderboardService.resetLeaderboard();
     timerService.resetRounds();
@@ -123,9 +124,11 @@ livePurchaseService.initialize(io);
 battleEngine.initialize(io);
 leaderboardService.initialize(io);
 
-// Listen for timer end to trigger battle
-io.on('timer-end', (data) => {
-  logger.info('Timer ended, executing battle...');
+// ── Wire timer → battle engine ───────────────────────────────────────────────
+// timerService.emit('round-ended', ...) is a Node.js EventEmitter call —
+// io.on('timer-end') does NOT work because io.emit() sends to clients only.
+timerService.on('round-ended', (data: { round: number; participantCount: number }) => {
+  logger.info(`[server] round-ended → executing battle round ${data.round}`);
   battleEngine.executeBattle(data.round, data.participantCount);
 });
 
@@ -137,19 +140,15 @@ httpServer.listen(PORT, () => {
   logger.info(`📡 Socket.IO enabled`);
   logger.info(`🌍 CORS origin: ${process.env.CORS_ORIGIN}`);
   logger.info(`⚡ Environment: ${process.env.NODE_ENV || 'development'}`);
-  
-  // Auto-start first round in development
-  if (process.env.NODE_ENV === 'development') {
-    setTimeout(() => {
-      logger.info('🎮 Auto-starting first round...');
-      timerService.startTimer(1);
-    }, 3000);
-  }
+
+  // Start the on-chain trade listener (timer starts when first participant buys)
+  tradeListener.start();
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM signal received: closing HTTP server');
+  tradeListener.stop();
   timerService.stopTimer();
   httpServer.close(() => {
     logger.info('HTTP server closed');

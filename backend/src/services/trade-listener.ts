@@ -1,40 +1,40 @@
 /**
  * trade-listener.ts
  *
- * Connects directly to Solana (via Helius free RPC WebSocket) and streams
- * every on-chain transaction that involves your token mint in real time.
+ * Two-phase real-time trade detection:
  *
- * No webhook server exposure needed — the backend itself subscribes.
+ * Phase 1 (instant, <100ms):
+ *   onLogs fires → immediately fetch raw (non-parsed) tx → extract signer →
+ *   emit live-purchase / participant-removed to frontend RIGHT AWAY.
  *
- * Flow:
- *  1. connection.onLogs(tokenMint, cb)  → fires for every tx touching the mint
- *  2. Skip failed / non-pump.fun txs
- *  3. Fetch full parsed transaction  → getParsedTransaction()
- *  4. Diff pre/post token balances   → detect BUY (delta > 0) or SELL (delta < 0)
- *  5. Route to livePurchaseService.handlePurchase / handleSell
+ * Phase 2 (background, 0-3s):
+ *   Fetch full getParsedTransaction to get exact token balances →
+ *   call handlePurchase / handleSell for DB write + battle entry.
+ *
+ * This means fighters appear on screen in <100ms from on-chain confirmation.
  */
 
-import { Connection, PublicKey, ParsedTransactionWithMeta } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import logger from '../config/logger';
 import livePurchaseService from './live-purchases';
 
-// pump.fun program IDs (both the original and migration program)
+// pump.fun program IDs
 const PUMP_FUN_PROGRAMS = new Set([
-  '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',  // pump.fun AMM
-  'BSfD6SHZigAfDWSjzD5Q41jw8LmKwtmjskPH9XW1mrRW', // pump.fun fee collector
+  '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',
+  'BSfD6SHZigAfDWSjzD5Q41jw8LmKwtmjskPH9XW1mrRW',
 ]);
 
-// How long to wait before re-fetching a tx that isn't confirmed yet (ms)
-const FETCH_RETRY_DELAY_MS  = 1500;
-const FETCH_MAX_RETRIES     = 5;
+// Phase-2 retry config — lower than before to keep things snappy
+const FETCH_RETRY_DELAY_MS = 500;
+const FETCH_MAX_RETRIES    = 4;
 
 class TradeListener {
   private connection: Connection | null = null;
   private subscriptionId: number | null = null;
-  private isRunning = false;
+  private isRunning  = false;
   private tokenMint: string | null = null;
 
-  // ─── Public API ───────────────────────────────────────────────────────────
+  // ─── Public API ─────────────────────────────────────────────────────────────
 
   start(): void {
     const rpcUrl   = process.env.SOLANA_RPC_URL;
@@ -57,8 +57,6 @@ class TradeListener {
     this.tokenMint = mintAddr;
     this.isRunning = true;
 
-    // Use Shyft WebSocket for subscriptions (free, low-latency)
-    // Use Helius HTTP RPC for fetching full parsed transactions
     const wsEndpoint = wsUrl ||
       rpcUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
 
@@ -82,43 +80,52 @@ class TradeListener {
     logger.info('[TradeListener] Stopped');
   }
 
-  // ─── Subscription ─────────────────────────────────────────────────────────
+  // ─── Subscription ───────────────────────────────────────────────────────────
 
   private subscribe(): void {
     if (!this.connection || !this.tokenMint) return;
 
-    // onLogs accepts a PublicKey — it automatically subscribes to all txs
-    // where this account appears (covers every pump.fun buy/sell of the mint)
     const mintPubkey = new PublicKey(this.tokenMint);
 
     this.subscriptionId = this.connection.onLogs(
       mintPubkey,
       async ({ signature, logs, err }) => {
-        // Skip failed transactions
         if (err) return;
 
-        // Only process pump.fun swaps — check program logs quickly before
-        // making an expensive getParsedTransaction call
         const isPumpFunSwap = logs.some(
           (line) =>
             PUMP_FUN_PROGRAMS.has(line.replace('Program ', '').split(' ')[0]) ||
-            line.includes('Instruction: Buy') ||
+            line.includes('Instruction: Buy')  ||
             line.includes('Instruction: Sell') ||
-            line.includes('Instruction: buy') ||
+            line.includes('Instruction: buy')  ||
             line.includes('Instruction: sell'),
         );
-
         if (!isPumpFunSwap) return;
 
-        logger.info(`[TradeListener] Swap detected → TX ${signature.slice(0, 12)}...`);
+        const isBuy = logs.some(
+          (l) => l.includes('Instruction: Buy') || l.includes('Instruction: buy'),
+        );
 
-        const tx = await this.fetchWithRetry(signature);
-        if (!tx) {
-          logger.warn(`[TradeListener] Could not fetch TX ${signature.slice(0, 12)} after retries`);
-          return;
-        }
+        logger.info(
+          `[TradeListener] ${isBuy ? '🟢 BUY' : '🔴 SELL'} detected → TX ${signature.slice(0, 12)}...`,
+        );
 
-        await this.parseTrade(signature, tx);
+        // ── Phase 1: instant signer extraction ──────────────────────────────
+        // getTransaction (raw) is faster than getParsedTransaction —
+        // fire-and-forget, do NOT await here so Phase 2 starts in parallel.
+        this.extractSignerAndEmitInstant(signature, isBuy).catch(() => {});
+
+        // ── Phase 2: background full parse ───────────────────────────────────
+        // This runs in parallel with Phase 1. Once we have the parsed tx we
+        // call handlePurchase / handleSell for the real token amount + DB write.
+        this.fetchWithRetry(signature)
+          .then((tx) => {
+            if (tx) return this.parseTrade(signature, tx);
+            return undefined;
+          })
+          .catch((err: any) =>
+            logger.warn(`[TradeListener] Phase-2 parse failed for ${signature.slice(0, 12)}: ${err.message}`),
+          );
       },
       'confirmed',
     );
@@ -126,12 +133,42 @@ class TradeListener {
     logger.info(`[TradeListener] ✅ Listening for trades on mint: ${this.tokenMint}`);
   }
 
-  // ─── Transaction fetch with retry ─────────────────────────────────────────
+  // ─── Phase 1: Instant emit via raw (non-parsed) transaction ─────────────────
+
+  private async extractSignerAndEmitInstant(
+    signature: string,
+    isBuy: boolean,
+  ): Promise<void> {
+    try {
+      // Raw getTransaction is lighter and usually returns before getParsedTransaction
+      const raw = await this.connection!.getTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+        commitment: 'confirmed',
+      });
+
+      if (!raw || raw.meta?.err) return;
+
+      // First account key = fee payer = the trader
+      const keys   = raw.transaction.message.getAccountKeys();
+      const signer = keys.get(0)?.toBase58();
+      if (!signer) return;
+
+      if (isBuy) {
+        livePurchaseService.emitInstantBuy(signer);
+      } else {
+        livePurchaseService.emitInstantSell(signer);
+      }
+    } catch (err: any) {
+      logger.debug(`[TradeListener] Phase-1 signer extraction failed: ${err.message}`);
+    }
+  }
+
+  // ─── Phase 2: Full parsed transaction fetch ──────────────────────────────────
 
   private async fetchWithRetry(
     signature: string,
     retries = FETCH_MAX_RETRIES,
-  ): Promise<ParsedTransactionWithMeta | null> {
+  ): Promise<import('@solana/web3.js').ParsedTransactionWithMeta | null> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const tx = await this.connection!.getParsedTransaction(signature, {
@@ -140,21 +177,21 @@ class TradeListener {
         });
         if (tx) return tx;
       } catch (err: any) {
-        logger.debug(`[TradeListener] Fetch attempt ${attempt} failed for ${signature.slice(0,12)}: ${err.message}`);
+        logger.debug(
+          `[TradeListener] Fetch attempt ${attempt} failed for ${signature.slice(0, 12)}: ${err.message}`,
+        );
       }
-
-      if (attempt < retries) {
-        await sleep(FETCH_RETRY_DELAY_MS);
-      }
+      if (attempt < retries) await sleep(FETCH_RETRY_DELAY_MS);
     }
+    logger.warn(`[TradeListener] Could not fetch TX ${signature.slice(0, 12)} after ${retries} retries`);
     return null;
   }
 
-  // ─── Trade parser ─────────────────────────────────────────────────────────
+  // ─── Phase 2: Trade parser ───────────────────────────────────────────────────
 
   private async parseTrade(
     signature: string,
-    tx: ParsedTransactionWithMeta,
+    tx: import('@solana/web3.js').ParsedTransactionWithMeta,
   ): Promise<void> {
     const tokenMint = this.tokenMint!;
 
@@ -164,7 +201,6 @@ class TradeListener {
     const preBalances  = tx.meta?.preTokenBalances  ?? [];
     const postBalances = tx.meta?.postTokenBalances ?? [];
 
-    // Build a map of pre-balances keyed by owner+mint
     const preMap = new Map<string, number>();
     for (const b of preBalances) {
       if (b.mint === tokenMint && b.owner) {
@@ -172,7 +208,6 @@ class TradeListener {
       }
     }
 
-    // Walk through post-balances and diff
     for (const post of postBalances) {
       if (post.mint !== tokenMint || !post.owner) continue;
 
@@ -180,12 +215,12 @@ class TradeListener {
       const after = post.uiTokenAmount.uiAmount ?? 0;
       const delta = after - pre;
 
-      if (Math.abs(delta) < 0.000001) continue; // ignore dust / rounding
+      if (Math.abs(delta) < 0.000001) continue;
 
       const walletAddress = post.owner;
       const tokenAmount   = Math.abs(delta);
 
-      // De-duplicate — skip if we already processed this exact signature
+      // Skip already-processed signatures
       const alreadyProcessed = await livePurchaseService.isTransactionProcessed(signature);
       if (alreadyProcessed) {
         logger.debug(`[TradeListener] TX ${signature.slice(0, 12)} already processed, skipping`);
@@ -193,11 +228,6 @@ class TradeListener {
       }
 
       if (delta > 0) {
-        // ── BUY ──────────────────────────────────────────────────────────
-        logger.info(
-          `[TradeListener] 🟢 BUY  | ${walletAddress.slice(0, 8)}...${walletAddress.slice(-4)} | +${tokenAmount.toLocaleString()} tokens`,
-        );
-
         try {
           await livePurchaseService.handlePurchase({
             walletAddress,
@@ -209,11 +239,6 @@ class TradeListener {
           logger.error(`[TradeListener] handlePurchase error: ${err.message}`);
         }
       } else {
-        // ── SELL ─────────────────────────────────────────────────────────
-        logger.info(
-          `[TradeListener] 🔴 SELL | ${walletAddress.slice(0, 8)}...${walletAddress.slice(-4)} | -${tokenAmount.toLocaleString()} tokens`,
-        );
-
         try {
           await livePurchaseService.handleSell({
             walletAddress,

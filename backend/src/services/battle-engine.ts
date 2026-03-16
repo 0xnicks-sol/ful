@@ -84,12 +84,17 @@ class BattleEngine {
         },
       });
 
-      // Emit fight started event
+      // Emit fight started event — include full participant list so the
+      // frontend can sync fighters even if some live-purchase events were missed.
       if (this.io) {
         this.io.emit('fight-started', {
           roundId,
           participantCount: participants.length,
           duration: this.fightDuration,
+          participants: participants.map((p) => ({
+            walletAddress: p.walletAddress,
+            tokenAmount:   p.tokenAmount,
+          })),
         });
       }
 
@@ -290,21 +295,21 @@ class BattleEngine {
   }
 
   /**
-   * Advance to next round
+   * Advance to next round.
+   * Only calls advanceToNextRound() — the timer itself starts when the
+   * first participant of the new round buys a token (battle-entry.ts).
    */
   private async advanceToNextRound(currentRound: number): Promise<void> {
     const totalRounds = parseInt(process.env.TOTAL_ROUNDS || '10', 10);
-    
+
     if (currentRound >= totalRounds) {
       logger.info('🏁 Tournament complete!');
       return;
     }
 
-    const nextRound = currentRound + 1;
     timerService.advanceToNextRound();
-    timerService.startTimer(nextRound);
-    
-    logger.info(`▶️  Starting round ${nextRound}`);
+
+    logger.info(`⏳ Round ${currentRound + 1} ready — waiting for first participant to buy`);
   }
 
   /**
